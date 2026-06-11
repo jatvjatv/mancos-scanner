@@ -1,0 +1,3460 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Outliners Scanner · Morado Tornasol</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-0: #07030f;
+    --bg-1: #0d0720;
+    --bg-2: #14092e;
+    --surface: rgba(28, 14, 56, 0.55);
+    --surface-strong: rgba(40, 20, 80, 0.75);
+    --border: rgba(168, 85, 247, 0.18);
+    --border-strong: rgba(192, 132, 252, 0.45);
+    --text: #ece7ff;
+    --text-dim: #a89cc9;
+    --text-muted: #6b5d8f;
+    --violet: #a855f7;
+    --violet-bright: #c084fc;
+    --magenta: #e879f9;
+    --cyan: #7dd3fc;
+    --pink: #f0abfc;
+    --gold: #fbbf24;
+    --green: #34d399;
+    --red: #fb7185;
+    --orange: #fb923c;
+    --iris: linear-gradient(135deg, #6d28d9 0%, #a855f7 35%, #e879f9 65%, #7dd3fc 100%);
+    --iris-soft: linear-gradient(135deg, rgba(109,40,217,.25), rgba(168,85,247,.25), rgba(232,121,249,.2), rgba(125,211,252,.2));
+    --shadow-glow: 0 0 40px rgba(168, 85, 247, 0.25), 0 0 80px rgba(232, 121, 249, 0.1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg-0);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 0%, rgba(168, 85, 247, 0.18), transparent 60%),
+      radial-gradient(ellipse 70% 50% at 80% 10%, rgba(232, 121, 249, 0.12), transparent 60%),
+      radial-gradient(ellipse 60% 50% at 50% 100%, rgba(125, 211, 252, 0.08), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(168,85,247,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(168,85,247,.04) 1px, transparent 1px);
+    background-size: 64px 64px;
+    pointer-events: none;
+    z-index: 0;
+    mask-image: radial-gradient(ellipse at center, black 0%, transparent 80%);
+  }
+
+  .container {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 32px 28px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  header.top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .brand {
+    display: flex; align-items: center; gap: 12px;
+    font-weight: 800; font-size: 18px; letter-spacing: 0.5px;
+  }
+  .brand .logo {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--iris);
+    box-shadow: 0 0 20px rgba(168,85,247,.6), inset 0 0 8px rgba(0,0,0,.4);
+    position: relative;
+    animation: spin 8s linear infinite;
+  }
+  .brand .logo::before {
+    content: ''; position: absolute; inset: 6px;
+    border-radius: 50%; background: var(--bg-0);
+  }
+  .brand .logo::after {
+    content: ''; position: absolute; inset: 0;
+    border-radius: 50%; border: 1px solid rgba(255,255,255,.15);
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .brand .sub { color: var(--magenta); font-weight: 600; }
+  .live {
+    display: flex; gap: 18px; align-items: center;
+    font-size: 12px; color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .pulse {
+    display: inline-flex; align-items: center; gap: 8px;
+    color: var(--green);
+  }
+  .pulse::before {
+    content: ''; width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 10px var(--green);
+    animation: pulse 1.6s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: .4; transform: scale(.85); }
+  }
+
+  /* Hero */
+  .hero {
+    max-width: 760px;
+    color: var(--text-dim);
+    line-height: 1.6;
+    font-size: 15px;
+    margin-bottom: 24px;
+  }
+  .hero strong { color: var(--violet-bright); font-weight: 600; }
+
+  /* Metric cards */
+  .metrics {
+    display: grid; gap: 16px;
+    grid-template-columns: repeat(4, 1fr);
+    margin-bottom: 20px;
+  }
+  @media (max-width: 900px) { .metrics { grid-template-columns: repeat(2, 1fr); } }
+  .metric {
+    position: relative;
+    padding: 20px;
+    background: var(--surface);
+    backdrop-filter: blur(20px);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .metric::before {
+    content: ''; position: absolute; inset: 0;
+    background: var(--iris-soft);
+    opacity: .25;
+    pointer-events: none;
+  }
+  .metric-icon { font-size: 14px; color: var(--violet-bright); position: relative; }
+  .metric-label {
+    font-size: 11px; letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin: 6px 0 10px;
+    position: relative;
+  }
+  .metric-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 26px; font-weight: 700;
+    background: var(--iris);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    position: relative;
+  }
+  .metric-value.danger { background: linear-gradient(135deg, #fb7185, #fbbf24); -webkit-background-clip: text; background-clip: text; }
+  .metric-foot {
+    font-size: 12px; color: var(--text-dim);
+    margin-top: 6px;
+    position: relative;
+  }
+
+  /* Thermometer note */
+  .thermo {
+    padding: 16px 20px;
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, rgba(168,85,247,.08), rgba(232,121,249,.04));
+    border-radius: 12px;
+    margin-bottom: 56px;
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+  .thermo a { color: var(--violet-bright); text-decoration: none; border-bottom: 1px dashed currentColor; }
+
+  /* Section title */
+  .section-title {
+    font-size: 32px; font-weight: 800;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #ece7ff 0%, #c084fc 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .section-desc {
+    color: var(--text-dim); font-size: 14px;
+    max-width: 640px;
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+  .section-head {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    flex-wrap: wrap; gap: 16px;
+    margin-bottom: 18px;
+  }
+
+  /* Filters */
+  .filters {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+  .chip {
+    padding: 8px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 13px;
+    color: var(--text-dim);
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: all .2s ease;
+    backdrop-filter: blur(10px);
+  }
+  .chip:hover { border-color: var(--border-strong); color: var(--text); }
+  .chip .count {
+    font-size: 11px;
+    color: var(--text-muted);
+    background: rgba(168,85,247,.12);
+    padding: 1px 6px;
+    border-radius: 10px;
+  }
+  .chip.active {
+    background: linear-gradient(135deg, rgba(168,85,247,.25), rgba(232,121,249,.2));
+    border-color: var(--violet-bright);
+    color: var(--text);
+    box-shadow: 0 0 18px rgba(168,85,247,.3);
+  }
+  .chip.active .count { color: var(--text); background: rgba(255,255,255,.1); }
+
+  .refresh-btn {
+    padding: 8px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    border-radius: 10px;
+    font-size: 13px;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .refresh-btn:hover { color: var(--text); border-color: var(--border-strong); }
+
+  .search-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    margin-bottom: 12px;
+    transition: border-color .2s;
+  }
+  .search-row:focus-within {
+    border-color: var(--border-strong);
+    box-shadow: 0 0 18px rgba(168,85,247,.18);
+  }
+  .search-icon {
+    color: var(--violet-bright);
+    font-size: 18px;
+    line-height: 1;
+  }
+  .search-row input {
+    flex: 1; min-width: 0;
+    background: transparent; border: 0;
+    color: var(--text);
+    font-family: inherit; font-size: 14px;
+    outline: none;
+  }
+  .search-row input::placeholder { color: var(--text-muted); }
+  .search-ext, .search-clear {
+    background: linear-gradient(135deg, rgba(168,85,247,.18), rgba(232,121,249,.12));
+    border: 1px solid var(--border-strong);
+    color: var(--violet-bright);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-family: inherit; font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .search-ext:hover { background: linear-gradient(135deg, rgba(168,85,247,.3), rgba(232,121,249,.2)); }
+  .search-clear { padding: 6px 10px; }
+  .search-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 0 14px 8px;
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 18px;
+  }
+  .search-hint .ok { color: var(--green); }
+  .search-hint .warn { color: var(--gold); }
+  .search-hint .err { color: var(--red); }
+
+  .card.searched::before {
+    content: '🔍 BUSCADO';
+    position: absolute; top: 10px; right: 14px;
+    font-size: 9px; font-weight: 700; letter-spacing: 1px;
+    color: var(--violet-bright);
+    background: linear-gradient(135deg, rgba(168,85,247,.18), rgba(232,121,249,.1));
+    border: 1px solid var(--border-strong);
+    padding: 3px 7px; border-radius: 4px;
+    z-index: 2;
+  }
+
+  /* Token grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 1000px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    position: relative;
+    padding: 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    backdrop-filter: blur(20px);
+    overflow: hidden;
+    transition: transform .2s ease, border-color .2s ease;
+  }
+  .card:hover { transform: translateY(-2px); border-color: var(--border-strong); }
+  .card.tier-top::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: var(--iris);
+    background-size: 200% 100%;
+    animation: shimmer 3s linear infinite;
+  }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+
+  .card-head {
+    display: flex; align-items: flex-start; gap: 12px;
+    margin-bottom: 12px;
+  }
+  .ticker-badge {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(168,85,247,.2), rgba(232,121,249,.15));
+    border: 1px solid var(--border-strong);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700; font-size: 12px;
+    color: var(--violet-bright);
+    flex-shrink: 0;
+  }
+  .card-title { flex: 1; min-width: 0; }
+  .card-title h3 {
+    font-size: 18px; font-weight: 800; letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+  .card-title .name { font-size: 12px; color: var(--text-dim); }
+  .card-rank {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; color: var(--text-muted);
+    display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+  }
+  .live-dot {
+    font-size: 9px; letter-spacing: 0.5px;
+    color: var(--green);
+    background: rgba(52,211,153,.1);
+    border: 1px solid rgba(52,211,153,.3);
+    padding: 2px 6px; border-radius: 4px;
+    font-weight: 600;
+  }
+  .live-dot.fallback {
+    color: var(--text-muted);
+    background: rgba(168,85,247,.04);
+    border-color: rgba(168,85,247,.15);
+  }
+  .cat-tag {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 3px 10px;
+    font-size: 11px;
+    border-radius: 6px;
+    background: rgba(168,85,247,.1);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+
+  .price-row {
+    display: flex; align-items: baseline; gap: 8px;
+    margin: 8px 0 4px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .price { font-size: 24px; font-weight: 700; color: var(--text); }
+  .change { font-size: 13px; font-weight: 600; }
+  .change.up { color: var(--green); }
+  .change.down { color: var(--red); }
+  .meta {
+    display: flex; flex-wrap: wrap; gap: 4px 10px;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 14px;
+  }
+  .meta strong { color: var(--text-dim); font-weight: 500; }
+  .opp-row {
+    margin: -6px 0 14px;
+    display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  .opp {
+    color: var(--violet-bright);
+    background: linear-gradient(135deg, rgba(168,85,247,.12), rgba(232,121,249,.08));
+    border: 1px solid rgba(192,132,252,.3);
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .opp .lbl { color: var(--text-muted); font-weight: 400; }
+  .opp.real {
+    color: var(--green);
+    background: linear-gradient(135deg, rgba(52,211,153,.10), rgba(125,211,252,.06));
+    border-color: rgba(52,211,153,.35);
+  }
+  .opp.real .lbl { color: rgba(52,211,153,.65); }
+
+  /* Score block */
+  .score-block {
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px;
+    border-radius: 10px;
+    background: rgba(255,255,255,.02);
+    border: 1px solid var(--border);
+    margin-bottom: 14px;
+  }
+  .score-ring {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: conic-gradient(var(--ring-color, var(--violet)) calc(var(--score) * 1%), rgba(255,255,255,.06) 0);
+    display: grid; place-items: center;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .score-ring::before {
+    content: '';
+    position: absolute; inset: 4px;
+    background: var(--bg-1);
+    border-radius: 50%;
+  }
+  .score-ring span {
+    position: relative;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700; font-size: 17px;
+  }
+  .tier-label { font-size: 13px; font-weight: 700; letter-spacing: 1px; }
+  .tier-sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .tier-top .tier-label { color: var(--violet-bright); }
+  .tier-solid .tier-label { color: var(--cyan); }
+  .tier-spec .tier-label { color: var(--gold); }
+  .tier-avoid .tier-label { color: var(--red); }
+
+  /* Desglose del score (Calidad / Oportunidad / Riesgo) */
+  .score-breakdown {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+  }
+  .sb-item {
+    background: rgba(255,255,255,.02);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+  }
+  .sb-label { color: var(--text-muted); font-size: 10px; letter-spacing: .5px; text-transform: uppercase; }
+  .sb-value { color: var(--text); font-weight: 700; font-size: 14px; margin-top: 2px; }
+  .sb-value.risk { color: var(--red); }
+  .sb-bar {
+    height: 3px; border-radius: 2px;
+    background: rgba(255,255,255,.06);
+    margin-top: 6px; overflow: hidden;
+  }
+  .sb-bar > span { display: block; height: 100%; }
+  .sb-bar > span.cal { background: var(--cyan); }
+  .sb-bar > span.opp { background: var(--violet-bright); }
+  .sb-bar > span.risk { background: var(--red); }
+
+  .warn {
+    margin-top: 6px;
+    padding: 4px 8px;
+    font-size: 10px;
+    color: var(--orange);
+    background: rgba(251,146,60,.08);
+    border: 1px solid rgba(251,146,60,.25);
+    border-radius: 6px;
+    display: inline-block;
+  }
+
+  /* Criteria */
+  .criteria {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .crit {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 8px;
+    font-size: 11.5px;
+    background: rgba(255,255,255,.025);
+    border: 1px solid rgba(168,85,247,.08);
+    border-radius: 6px;
+    cursor: default;
+    user-select: none;
+    color: var(--text-muted);
+  }
+  .crit .box {
+    width: 14px; height: 14px;
+    border-radius: 4px;
+    border: 1px solid rgba(168,85,247,.3);
+    display: grid; place-items: center;
+    font-size: 10px;
+    flex-shrink: 0;
+    color: transparent;
+  }
+  .crit.on .box {
+    background: var(--iris);
+    border-color: transparent;
+    color: white;
+  }
+  .crit.on { color: var(--text); }
+  .crit.off .box {
+    border-style: dashed;
+    opacity: .55;
+  }
+
+  .analysis {
+    font-size: 12.5px; color: var(--text-dim);
+    line-height: 1.55;
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+  }
+  .analysis a { color: var(--violet-bright); text-decoration: none; border-bottom: 1px dashed currentColor; }
+  .takeaway {
+    margin-top: 10px;
+    padding: 9px 11px;
+    background: rgba(168,85,247,.04);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 11.5px;
+    line-height: 1.5;
+  }
+  .takeaway .tk-row {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 8px; flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+  .takeaway .tk-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px; font-weight: 700;
+    padding: 2px 7px; border-radius: 4px;
+    border: 1px solid;
+    background: rgba(0,0,0,.2);
+    letter-spacing: 0.3px;
+  }
+  .takeaway .tk-meta {
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+  }
+  .takeaway .tk-line {
+    color: var(--text-dim);
+    margin: 2px 0;
+  }
+  .takeaway .tk-line b { color: var(--text); font-weight: 600; }
+  .takeaway .tk-good { color: var(--green); margin-right: 4px; }
+  .takeaway .tk-bad  { color: var(--red);   margin-right: 4px; }
+  .takeaway .tk-bits {
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    margin-top: 5px;
+    padding-top: 5px;
+    border-top: 1px dashed rgba(168,85,247,.15);
+  }
+  .more {
+    display: inline-block;
+    margin-top: 8px;
+    color: var(--violet-bright);
+    font-size: 12px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .more:hover { text-decoration: underline; }
+
+  .detail {
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(168,85,247,.05);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.55;
+  }
+  .detail h5 {
+    font-size: 11px; letter-spacing: 1px;
+    color: var(--violet-bright);
+    text-transform: uppercase;
+    margin: 0 0 8px;
+    font-weight: 600;
+  }
+  .detail h5:not(:first-child) { margin-top: 14px; }
+  .detail .crit-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
+  .detail .crit-list li {
+    display: grid;
+    grid-template-columns: 16px 1fr auto;
+    gap: 8px;
+    align-items: baseline;
+    padding: 3px 0;
+    font-size: 11.5px;
+  }
+  .detail .crit-list li .mark { font-weight: 700; }
+  .detail .crit-list li.on .mark  { color: var(--violet-bright); }
+  .detail .crit-list li.off .mark { color: var(--text-muted); }
+  .detail .crit-list li .reason { color: var(--text-muted); font-size: 11px; font-family: 'JetBrains Mono', monospace; }
+  .detail .crit-list li.off .label { color: var(--text-muted); }
+  .detail .stats {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+  }
+  .detail .stats div { display: flex; justify-content: space-between; gap: 8px; }
+  .detail .stats div span:first-child { color: var(--text-muted); }
+  .detail .stats div span:last-child  { color: var(--text); font-weight: 600; }
+  .detail .links {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+  }
+  .detail .links a {
+    color: var(--violet-bright); text-decoration: none;
+    border: 1px solid var(--border);
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+  .detail .links a:hover { border-color: var(--border-strong); }
+
+  /* Sections */
+  section { margin-top: 72px; }
+
+  /* Trampas grid */
+  .traps {
+    display: grid; gap: 16px;
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @media (max-width: 800px) { .traps { grid-template-columns: 1fr; } }
+  .trap {
+    padding: 18px;
+    background: var(--surface);
+    border: 1px solid rgba(251,113,133,.18);
+    border-radius: 12px;
+    backdrop-filter: blur(12px);
+  }
+  .trap h4 {
+    color: var(--red);
+    font-size: 13px; letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .trap-row {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 12px;
+    padding: 10px 0;
+    border-top: 1px solid rgba(255,255,255,.04);
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+  .trap-row:first-of-type { border-top: 0; }
+  .trap-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 12px;
+    background: rgba(251,113,133,.1);
+    border: 1px solid rgba(251,113,133,.25);
+    color: var(--red);
+    padding: 4px 0;
+    text-align: center;
+    border-radius: 6px;
+    height: fit-content;
+    cursor: pointer;
+    transition: background .15s, border-color .15s, transform .15s;
+  }
+  .trap-tag:hover {
+    background: rgba(251,113,133,.22);
+    border-color: rgba(251,113,133,.55);
+    transform: translateY(-1px);
+  }
+
+  /* Modal de trampa (popup) */
+  .trap-modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(8, 4, 20, .72);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 9999;
+    padding: 24px;
+  }
+  .trap-modal-backdrop.open { display: flex; }
+  .trap-modal {
+    width: 100%;
+    max-width: 560px;
+    max-height: 88vh;
+    overflow-y: auto;
+    background: var(--surface-strong);
+    border: 1px solid rgba(251,113,133,.35);
+    border-radius: 16px;
+    box-shadow: 0 24px 64px rgba(0,0,0,.55), 0 0 0 1px rgba(192,132,252,.08);
+    padding: 28px;
+    color: var(--text-dim);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .trap-modal h3 {
+    color: var(--red);
+    font-size: 18px; letter-spacing: .5px;
+    margin: 0 0 4px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .trap-modal .tm-sub {
+    color: var(--text-muted);
+    font-size: 12px;
+    text-transform: uppercase; letter-spacing: 1.2px;
+    margin-bottom: 18px;
+  }
+  .trap-modal .tm-stats {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+    margin: 14px 0 18px;
+  }
+  .trap-modal .tm-stat {
+    background: rgba(251,113,133,.06);
+    border: 1px solid rgba(251,113,133,.18);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .trap-modal .tm-stat .lbl {
+    font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .trap-modal .tm-stat .val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px; font-weight: 600;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+  .trap-modal h4 {
+    color: var(--violet-bright);
+    font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase;
+    margin: 18px 0 6px;
+  }
+  .trap-modal p { margin: 0 0 10px; }
+  .trap-modal strong { color: var(--gold); font-weight: 600; }
+  .trap-modal .tm-close {
+    position: absolute; top: 18px; right: 22px;
+    background: transparent; border: 0;
+    color: var(--text-muted);
+    font-size: 20px; cursor: pointer;
+    line-height: 1;
+  }
+  .trap-modal .tm-close:hover { color: var(--text-dim); }
+  .trap-modal-wrap { position: relative; }
+
+  /* Base reserve */
+  .reserve {
+    display: grid; gap: 16px;
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @media (max-width: 700px) { .reserve { grid-template-columns: 1fr; } }
+  .reserve-card {
+    padding: 22px;
+    background: var(--surface-strong);
+    border: 1px solid var(--border-strong);
+    border-radius: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .reserve-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: var(--iris-soft); opacity: .35; pointer-events: none;
+  }
+  .reserve-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 4px; position: relative;
+  }
+  .reserve-head h3 { font-size: 22px; font-weight: 800; }
+  .reserve-tag {
+    font-size: 11px; letter-spacing: 1.5px;
+    color: var(--violet-bright);
+    border: 1px solid var(--border-strong);
+    padding: 4px 10px; border-radius: 6px;
+  }
+  .reserve-card .sub { color: var(--text-dim); font-size: 13px; margin-bottom: 14px; position: relative; }
+  .reserve-card .price-row { position: relative; }
+  .reserve-card .meta { position: relative; }
+  .reserve-card .text { font-size: 13px; color: var(--text-dim); line-height: 1.55; position: relative; }
+
+  /* Portfolio */
+  .toggle {
+    display: inline-flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 16px;
+  }
+  .toggle button {
+    background: transparent; border: 0;
+    color: var(--text-dim);
+    padding: 8px 16px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .toggle button.active {
+    background: linear-gradient(135deg, rgba(168,85,247,.3), rgba(232,121,249,.2));
+    color: var(--text);
+    box-shadow: 0 0 14px rgba(168,85,247,.3);
+  }
+  .strategy-desc { color: var(--text-dim); font-size: 14px; line-height: 1.55; margin-bottom: 20px; max-width: 680px; }
+  .slider-row { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; font-size: 13px; color: var(--text-dim); }
+  .slider-row input[type=range] {
+    flex: 1; max-width: 380px;
+    -webkit-appearance: none; appearance: none;
+    height: 4px; background: rgba(168,85,247,.15);
+    border-radius: 4px;
+  }
+  .slider-row input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    background: var(--iris);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 12px rgba(168,85,247,.6);
+    border: 2px solid var(--bg-0);
+  }
+  .slider-row .val {
+    color: var(--violet-bright); font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .portfolio-box {
+    padding: 22px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    backdrop-filter: blur(12px);
+  }
+  .pf-row {
+    display: grid;
+    grid-template-columns: 80px 1fr 60px;
+    gap: 14px;
+    align-items: center;
+    padding: 10px 0;
+    border-top: 1px solid rgba(255,255,255,.04);
+  }
+  .pf-row:first-child { border-top: 0; }
+  .pf-row .tk {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700; font-size: 14px;
+    color: var(--text);
+  }
+  .pf-row .note { font-size: 12px; color: var(--text-dim); }
+  .pf-row .pct {
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--violet-bright);
+    font-weight: 600;
+  }
+  .pf-bar {
+    grid-column: 2 / 3;
+    height: 4px;
+    background: rgba(168,85,247,.08);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 4px;
+  }
+  .pf-bar > div {
+    height: 100%;
+    background: var(--iris);
+    background-size: 200% 100%;
+    animation: shimmer 4s linear infinite;
+  }
+  .pf-meta {
+    display: flex; gap: 18px; flex-wrap: wrap;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .pf-meta strong { color: var(--violet-bright); }
+
+  footer {
+    margin-top: 80px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 12px;
+    border-top: 1px solid var(--border);
+    padding-top: 24px;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header class="top">
+    <div class="brand">
+      <div class="logo"></div>
+      OUTLINERS <span class="sub">SCANNER</span>
+    </div>
+    <div class="live">
+      <span class="pulse" id="liveTag">DATOS EN VIVO</span>
+      <span style="color:var(--text-muted)">USD</span>
+      <span id="syncStatus">Actualizado <span id="now">--:--</span></span>
+    </div>
+  </header>
+
+  <p class="hero">
+    El método de valoración de Warren Buffett, aplicado a cripto. Medimos oferta,
+    flujo, rentabilidad real y descuento de cada proyecto premium para detectar
+    <strong>qué está subvaluado antes que el mercado</strong> — con un score de 0 a 100.
+  </p>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-icon">◐</div>
+      <div class="metric-label">MVRV-Z · Mercado</div>
+      <div class="metric-value">0.64</div>
+      <div class="metric-foot">Zona barata (&lt;1)</div>
+    </div>
+    <div class="metric">
+      <div class="metric-icon">₿</div>
+      <div class="metric-label">Dominancia BTC</div>
+      <div class="metric-value" data-metric="btcDom">—</div>
+      <div class="metric-foot" data-metric="btcDomFoot">Cargando…</div>
+    </div>
+    <div class="metric">
+      <div class="metric-icon">📈</div>
+      <div class="metric-label">Buffett Acciones US</div>
+      <div class="metric-value danger">129%</div>
+      <div class="metric-foot">Acciones carísimas</div>
+    </div>
+    <div class="metric">
+      <div class="metric-icon">⇄</div>
+      <div class="metric-label">Flujo de Capital</div>
+      <div class="metric-value" style="font-size:18px">IA · RWA · DePIN</div>
+      <div class="metric-foot">Rotación selectiva</div>
+    </div>
+  </div>
+
+  <div class="thermo">
+    ◇ El termómetro marca <a href="#">mercado cripto barato</a> mientras las acciones cotizan en extremos.
+    Es momento de acumular infraestructura de calidad subvaluada — soltar cuando el MVRV-Z se acerque a 3,7.
+  </div>
+
+  <!-- RANKING -->
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 class="section-title">Ranking de oportunidad</h2>
+        <p class="section-desc">
+          Universo dinámico armado desde <strong>categorías de CoinGecko</strong>: IA, RWA, DePIN, GPU, DeFi, L1/L2, Pagos, Privacidad e Identidad.
+          Los 8 criterios resultan del análisis automático en tiempo real (CoinGecko + DefiLlama).
+          <strong>Solo se listan oportunidades reales</strong> (TOP, SÓLIDO, ESPECULATIVO). Los EVITAR no son oportunidades — viven en la sección Trampas más abajo.
+          <span id="universeStat" style="display:block;margin-top:6px;color:var(--violet-bright);font-family:'JetBrains Mono',monospace;font-size:12px">Cargando universo…</span>
+        </p>
+      </div>
+      <button class="refresh-btn" id="refreshBtn" onclick="fetchLive(true)">↻ Actualizar</button>
+    </div>
+
+    <div class="search-row">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="searchInput" placeholder="Buscar token por símbolo o nombre (ej: SUI, PEPE, ONDO)…" oninput="onSearchInput()" onkeydown="if(event.key==='Enter') searchExternal()" autocomplete="off" />
+      <button id="searchExtBtn" class="search-ext" onclick="searchExternal()" style="display:none">Buscar en CoinGecko →</button>
+      <button id="searchClearBtn" class="search-clear" onclick="clearSearch()" style="display:none">✕</button>
+    </div>
+    <div id="searchHint" class="search-hint"></div>
+
+    <div class="filters" id="tierFilters" style="margin-bottom:14px"></div>
+    <div class="filters" id="filters"></div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <!-- TRAMPAS -->
+  <section>
+    <h2 class="section-title">Trampas de valor — qué evitar</h2>
+    <p class="section-desc">Parecen baratas por el descuento, pero una falla estructural las condena. Detectadas automáticamente desde la data en vivo (circ/total, fees/mcap, Δ_1m, % bajo ATH).</p>
+    <div class="traps" id="trapsBox">
+      <div style="grid-column:1/-1;color:var(--text-muted);font-size:13px;text-align:center;padding:20px">
+        Detectando trampas… (espera a que cargue el universo)
+      </div>
+    </div>
+  </section>
+
+  <!-- MODAL DE TRAMPA -->
+  <div class="trap-modal-backdrop" id="trapModalBackdrop" onclick="if(event.target===this)closeTrapModal()">
+    <div class="trap-modal-wrap">
+      <div class="trap-modal" id="trapModal">
+        <button class="tm-close" onclick="closeTrapModal()" aria-label="Cerrar">×</button>
+        <!-- contenido inyectado por openTrap() -->
+      </div>
+    </div>
+  </div>
+
+  <!-- BASE -->
+  <section>
+    <h2 class="section-title">La base · Reserva</h2>
+    <p class="section-desc">No son apuestas subvaluadas, son el ancla del portfolio: bajo riesgo, alta liquidez. El termómetro indica que también cotizan baratos.</p>
+    <div class="reserve">
+      <div class="reserve-card" data-reserve="BTC">
+        <div class="reserve-head"><h3>BTC</h3><span class="reserve-tag">◯ RESERVA</span></div>
+        <div class="sub">Bitcoin · Reserva de valor · El ancla</div>
+        <div class="price-row"><span class="price" data-field="price">$67,505</span><span class="change down" data-field="chg">-5.2%</span></div>
+        <div class="meta">
+          <span><strong>Mcap</strong> <span data-field="mcap">$1.6T</span></span>
+          <span><strong>ATH</strong> <span data-field="ath">$126,000</span></span>
+          <span data-field="bajo">86.6% bajo ATH</span>
+        </div>
+        <div class="opp-row">
+          <span class="opp" title="Multiplicador teórico al ATH"><span class="lbl">ATH en X:</span><span data-field="opp">1.87×</span></span>
+          <span class="opp real" title="Estimación realista — blue-chip con haircut 15%"><span class="lbl">Oportunidad Real en X:</span><span data-field="oppReal">1.6×</span></span>
+        </div>
+        <p class="text" style="margin-top:14px">No es una apuesta, es la base. Oferta fija de 21M y el activo de menor riesgo del set. El termómetro (MVRV-Z 0,64) indica que hoy cotiza barato.</p>
+      </div>
+      <div class="reserve-card" data-reserve="ETH">
+        <div class="reserve-head"><h3>ETH</h3><span class="reserve-tag">◯ RESERVA</span></div>
+        <div class="sub">Ethereum · Ancla L1 · Capa de RWA</div>
+        <div class="price-row"><span class="price" data-field="price">$1,922</span><span class="change down" data-field="chg">-2.4%</span></div>
+        <div class="meta">
+          <span><strong>Mcap</strong> <span data-field="mcap">$520B</span></span>
+          <span><strong>ATH</strong> <span data-field="ath">$4,878</span></span>
+          <span data-field="bajo">154% bajo ATH</span>
+        </div>
+        <div class="opp-row">
+          <span class="opp" title="Multiplicador teórico al ATH"><span class="lbl">ATH en X:</span><span data-field="opp">2.54×</span></span>
+          <span class="opp real" title="Estimación realista — blue-chip con haircut 15%"><span class="lbl">Oportunidad Real en X:</span><span data-field="oppReal">2.2×</span></span>
+        </div>
+        <p class="text" style="margin-top:14px">La capa donde viven la mayoría de los tokens del scanner y la narrativa RWA. Blue-chip con ETF y staking. Estabiliza el portfolio junto a BTC.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PORTAFOLIO -->
+  <section>
+    <h2 class="section-title">Portfolio recomendado</h2>
+    <p class="section-desc">Selección de las de mayor potencial y más subvaluadas del universo, ponderada para perfil de largo plazo. Elige tu versión.</p>
+
+    <div class="toggle">
+      <button id="res" onclick="setMode('res')">◇ Reservado</button>
+      <button id="bal" class="active" onclick="setMode('bal')">◯ Balanceado</button>
+      <button id="agg" onclick="setMode('agg')">↗ Agresivo</button>
+    </div>
+
+    <p class="strategy-desc" id="strategy">
+      27% de base en blue-chips (BTC + ETH) y 73% en las apuestas subvaluadas de mayor convicción del universo. Menor volatilidad, sin trampas ni activos caros.
+    </p>
+
+    <div class="slider-row">
+      <span>Máximo de tokens: <span class="val" id="maxTokVal">14</span></span>
+      <input type="range" id="maxTok" min="5" max="20" value="14" oninput="renderPortfolio()" />
+    </div>
+
+    <div class="portfolio-box" id="portfolioBox"></div>
+  </section>
+
+  <footer>
+    Outliners Scanner · réplica privada · datos simulados con base en las imágenes de referencia
+  </footer>
+
+</div>
+
+<script>
+// Filtros por tier (calidad). 'todos' = TOP+SÓLIDO+ESPECULATIVO (las EVITAR siguen
+// filtradas por defecto). Si el usuario selecciona explícitamente 'EVITAR',
+// las mostramos (override consciente — útil para auditar trampas).
+const TIERS_FILTER = [
+  ['todos',        'Todos los tiers'],
+  ['TOP',          '◆ TOP'],
+  ['SÓLIDO',       '◯ Sólido'],
+  ['ESPECULATIVO', '◐ Especulativo'],
+  ['EVITAR',       '✕ Evitar'],
+];
+
+const CATEGORIES = [
+  ['todas', 'Todas'],
+  ['ia', 'IA descentralizada'],
+  ['gpu', 'Cómputo / GPU'],
+  ['data', 'Datos & Storage'],
+  ['depin', 'DePIN físico'],
+  ['rwa', 'RWA & Tokenización'],
+  ['pagos', 'Pagos & Financieras'],
+  ['defi', 'DeFi & Perps'],
+  ['l1', 'L1 / Smart Contracts'],
+  ['priv', 'Privacidad'],
+  ['id', 'Identidad'],
+];
+
+// Criterios (weights for score recalculation)
+// Criterios universales que se interpretan distinto según el arquetipo del token
+// (L1, DeFi, Infra). Las definiciones específicas de cada criterio están en
+// computeCritFromData(). Los pesos son fijos; lo que cambia es la regla.
+const CRITERIA = [
+  { key: 'oferta', label: 'Oferta sin dilución',     w: 13 },
+  { key: 'flujo',  label: 'Uso real',                w: 13 },
+  { key: 'crece',  label: 'Crecimiento',             w: 12 },
+  { key: 'rent',   label: 'Rentabilidad estructural',w: 13 },
+  { key: 'narr',   label: 'Narrativa correcta',      w: 12 },
+  { key: 'desc',   label: 'Descuento vs ATH',        w: 13 },
+  { key: 'dem',    label: 'Demanda externa',         w: 12 },
+  { key: 'val',    label: 'Asimetría restante',      w: 12 },
+];
+
+// 1 = activo, 0 = inactivo (en orden de CRITERIA)
+// Tier se calcula por score: 85+ TOP, 70-84 SÓLIDO, 55-69 ESPECULATIVO, <55 EVITAR
+// Esta lista es la CURADA ORIGINAL. Sirve de overlay (textos de análisis, narrativa)
+// cuando un token del universo coincide en ticker. La variable mutable TOKENS arranca
+// como copia de esta y se expande al cargar el universo.
+const CURATED_TOKENS = [
+  // ===== TOP =====
+  { tk:'RENDER', name:'Render Network', cat:'gpu', price:2.10, chg:5.5, mcap:'$1.15B', ath:'$13.53', bajo:'84%',
+    crit:[1,1,1,1,1,1,1,0], analysis:'El DePIN de cómputo más <a href="#">negocio real</a>: el uso quema tokens y la demanda de GPU para IA ya es tangible.' },
+  { tk:'AR', name:'Arweave', cat:'data', price:2.23, chg:-1.2, mcap:'$147M', ath:'$90.64', bajo:'98%',
+    crit:[1,0,1,1,1,1,1,1], analysis:'La <a href="#">mejor estructura de oferta del set</a>. Compras escasez tipo-oro + el futuro del dato permanente.' },
+  { tk:'AAVE', name:'Aave', cat:'defi', price:76.11, chg:-3.7, mcap:'$1.19B', ath:'$661.00', bajo:'88%',
+    crit:[1,1,0,1,1,1,1,1], analysis:'El <a href="#">DeFi blue-chip más rentable</a>: lending líder, revenue real, buyback activo y stablecoin propia (GHO).' },
+  { tk:'AKT', name:'Akash Network', cat:'gpu', price:0.7170, chg:-2.9, mcap:'$222M', ath:'$8.08', bajo:'91%',
+    crit:[1,1,1,0,1,1,1,1], analysis:'Apuesta <a href="#">chica y agresiva</a> a cómputo IA, con burn deflacionario atado a uso enterprise real.' },
+  { tk:'ENS', name:'Ethereum Name Service', cat:'id', price:5.51, chg:-3.4, mcap:'$234M', ath:'$83.40', bajo:'93%',
+    crit:[1,1,1,0,1,1,1,1], analysis:'La <a href="#">capa de identidad de Ethereum</a> (.eth): revenue real por registros, integrada en todas las wallets, -93% del ATH.' },
+  { tk:'ATH', name:'Aethir', cat:'gpu', price:0.00553, chg:-4.8, mcap:'$117M', ath:'$0.1185', bajo:'95%',
+    crit:[0,1,1,1,1,1,1,1], warn:'Dilución por unlocks pendientes',
+    analysis:'GPU DePIN líder con <a href="#">ARR real verificable</a> (clientes enterprise nombrables) y mcap $117M. El riesgo es dilución.' },
+  { tk:'GRASS', name:'Grass', cat:'data', price:0.4616, chg:-3.6, mcap:'$297M', ath:'$3.89', bajo:'88%',
+    crit:[0,1,1,1,1,1,1,1],
+    analysis:'Red de scraping descentralizado vendiendo datos a labs de IA. Revenue verificable creciendo y -88% del ATH.' },
+  { tk:'ENA', name:'Ethena', cat:'rwa', price:0.0853, chg:-2.3, mcap:'$795M', ath:'$1.52', bajo:'94%',
+    crit:[0,1,1,1,1,1,1,1], warn:'Dilución por unlocks pendientes',
+    analysis:'USDe con yield real y fee-switch programado. El catalizador es buyback con revenue de stablecoin.' },
+  { tk:'SYRUP', name:'Maple Finance', cat:'rwa', price:0.32, chg:0, mcap:'$184M', ath:'$0.6532', bajo:'51%',
+    crit:[0,1,1,1,1,1,1,1],
+    analysis:'Crédito on-chain a instituciones con revenue real. Buyback activo y narrativa RWA a precio chico.' },
+
+  // ===== SOLIDO (mid) =====
+  { tk:'JUP', name:'Jupiter', cat:'defi', price:0.40, chg:-4.0, mcap:'$560M', ath:'$2.00', bajo:'90%',
+    crit:[0,1,1,1,1,1,1,0], tierOverride:'SÓLIDO',
+    analysis:'El <a href="#">líder DeFi de Solana</a> (agregador + perps) que destina <a href="#">50% de sus ingresos a recomprar JUP</a>.' },
+  { tk:'LINK', name:'Chainlink', cat:'rwa', price:8.50, chg:-3.8, mcap:'$6.4B', ath:'$52.99', bajo:'84%',
+    crit:[1,1,1,0,1,1,1,0], tierOverride:'SÓLIDO',
+    analysis:'El <a href="#">picks-and-shovels</a> de la narrativa mejor financiada (RWA). Tokenomics ya limpios.' },
+  { tk:'UNI', name:'Uniswap', cat:'defi', price:7.13, chg:-5.2, mcap:'$2.42B', ath:'$44.97', bajo:'94%',
+    crit:[1,1,1,0,1,1,1,0], tierOverride:'SÓLIDO',
+    analysis:'El <a href="#">DEX líder</a>; la propuesta UNIfication activaría por fin los fees del protocolo hacia buyback & burn.' },
+  { tk:'SKY', name:'Sky (ex-MakerDAO)', cat:'rwa', price:0.0674, chg:-0.5, mcap:'$1.6B', ath:'$0.1140', bajo:'41%',
+    crit:[1,1,0,1,1,0,1,1], warn:'Caro — cerca de máximos', tierOverride:'SÓLIDO',
+    analysis:'El <a href="#">RWA original, ahora Sky</a>: USDS + treasuries financiando un buyback de SKY que escala de $36M a $150M/año.' },
+  { tk:'ONDO', name:'Ondo Finance', cat:'rwa', price:0.3718, chg:6.8, mcap:'$1.73B', ath:'$2.14', bajo:'83%',
+    crit:[0,1,1,1,1,1,1,0], warn:'Dilución por unlocks pendientes', tierOverride:'SÓLIDO',
+    analysis:'Líder de <a href="#">RWA</a>: 70% de las acciones tokenizadas, $3.5B de TVL, revenue real… con gran dilución pendiente.' },
+  { tk:'LDO', name:'Lido', cat:'defi', price:0.3093, chg:-4.2, mcap:'$320M', ath:'$7.30', bajo:'96%',
+    crit:[1,1,0,0,1,1,1,1], tierOverride:'SÓLIDO',
+    analysis:'El <a href="#">líder de liquid staking</a>, barato sobre su ATH con ingresos en caída.' },
+  { tk:'FET', name:'Fetch (ASI)', cat:'ia', price:0.62, chg:-3.0, mcap:'$1.5B', ath:'$3.47', bajo:'82%',
+    crit:[0,1,1,0,1,1,1,0], tierOverride:'SÓLIDO',
+    analysis:'Narrativa IA del merge ASI; demanda real por probar pero distribución masiva. Watchlist, no high conviction.' },
+  { tk:'TAO', name:'Bittensor', cat:'ia', price:285, chg:-4.5, mcap:'$2.3B', ath:'$757', bajo:'62%',
+    crit:[1,0,1,1,1,1,1,0], tierOverride:'SÓLIDO',
+    analysis:'Mercado descentralizado de subredes IA. Tokenomics tipo BTC, pero halvings frecuentes — fee real aún por capturar.' },
+  { tk:'INJ', name:'Injective', cat:'defi', price:11.40, chg:-2.5, mcap:'$1.1B', ath:'$52.62', bajo:'78%',
+    crit:[1,1,1,0,1,1,1,0], tierOverride:'SÓLIDO',
+    analysis:'L1 financiera con buyback & burn semanal a partir de los fees reales del ecosistema.' },
+  { tk:'PYTH', name:'Pyth Network', cat:'rwa', price:0.18, chg:-3.1, mcap:'$1.0B', ath:'$1.18', bajo:'85%',
+    crit:[0,1,1,0,1,1,1,1], tierOverride:'SÓLIDO',
+    analysis:'Oracle institucional. Compite con LINK en el lado más rápido / TradFi; sin fee-switch activo todavía.' },
+  { tk:'HNT', name:'Helium', cat:'depin', price:3.40, chg:-2.0, mcap:'$650M', ath:'$54.88', bajo:'94%',
+    crit:[1,1,1,0,1,1,1,0], tierOverride:'SÓLIDO',
+    analysis:'DePIN de telecom — el modelo 5G/MOBILE genera ingresos reales, aunque chicos. Re-rating depende de adopción carrier.' },
+  { tk:'IO', name:'io.net', cat:'gpu', price:1.10, chg:-4.0, mcap:'$210M', ath:'$5.61', bajo:'80%',
+    crit:[0,1,1,0,1,1,1,1], tierOverride:'SÓLIDO',
+    analysis:'GPU DePIN con utilización real, aunque revenue todavía chico vs supply. Watchlist agresivo.' },
+  { tk:'NEAR', name:'NEAR Protocol', cat:'l1', price:2.40, chg:-3.4, mcap:'$2.9B', ath:'$20.42', bajo:'88%',
+    crit:[0,1,1,0,1,1,1,0], tierOverride:'SÓLIDO',
+    analysis:'L1 con pivote AI Chain. Revenue chico vs supply, pero el equipo ejecuta. Inflación aún diluye.' },
+  { tk:'PENDLE', name:'Pendle', cat:'defi', price:4.70, chg:-2.8, mcap:'$760M', ath:'$7.51', bajo:'37%',
+    crit:[1,1,1,1,1,0,1,0], tierOverride:'SÓLIDO',
+    analysis:'Yield trading on-chain con producto real y revenue creciendo. Caro vs ATH pero la curva fundamental aún acompaña.' },
+  { tk:'MORPHO', name:'Morpho', cat:'defi', price:1.60, chg:-3.0, mcap:'$510M', ath:'$4.17', bajo:'62%',
+    crit:[1,1,1,0,1,1,1,0], tierOverride:'SÓLIDO',
+    analysis:'Capa de lending modular usada por instituciones. Captura de fees aún en discusión, pero el TVL acompaña.' },
+  { tk:'ARB', name:'Arbitrum', cat:'l1', price:0.42, chg:-3.5, mcap:'$2.0B', ath:'$2.40', bajo:'82%',
+    crit:[0,1,1,0,1,1,1,1], tierOverride:'SÓLIDO',
+    analysis:'Líder L2 por TVL con revenue real, pero la guerra de fees lo presiona. Buyback no activo.' },
+  { tk:'OP', name:'Optimism', cat:'l1', price:0.95, chg:-3.0, mcap:'$1.5B', ath:'$4.85', bajo:'80%',
+    crit:[0,1,1,0,1,1,1,1], tierOverride:'SÓLIDO',
+    analysis:'OP Stack como plataforma. Revenue por superchain todavía depende de unlocks; vigilar dilución.' },
+
+  // ===== ESPECULATIVO =====
+  { tk:'ZEC', name:'Zcash', cat:'priv', price:600.90, chg:12.5, mcap:'$8.67B', ath:'$688.00', bajo:'13%',
+    crit:[1,0,1,0,1,0,1,0], warn:'Ya corrió fuerte — no subvaluado', tierOverride:'ESPECULATIVO',
+    analysis:'La narrativa de privacidad #1, pero <a href="#">ya corrió +900% interanual</a>: gran tesis, no subvaluada hoy.' },
+  { tk:'TIA', name:'Celestia', cat:'data', price:1.85, chg:-5.0, mcap:'$1.3B', ath:'$20.85', bajo:'91%',
+    crit:[0,0,1,0,1,1,1,1], warn:'Inflación + unlocks', tierOverride:'ESPECULATIVO',
+    analysis:'DA modular líder en concepto, pero inflación infinita y unlocks recurrentes diluyen sin techo.' },
+  { tk:'EIGEN', name:'EigenLayer', cat:'defi', price:1.40, chg:-4.5, mcap:'$390M', ath:'$5.66', bajo:'75%',
+    crit:[0,0,1,0,1,1,1,1], warn:'Unlocks y daño post-hack', tierOverride:'ESPECULATIVO',
+    analysis:'Restaking quedó tocado en confianza y oferta tras hack de $300M + unlocks grandes.' },
+
+  // ===== EVITAR =====
+  { tk:'XRP', name:'XRP', cat:'pagos', price:1.23, chg:-4.0, mcap:'$78.3B', ath:'$3.66', bajo:'66%',
+    crit:[0,0,1,0,1,1,1,0], tierOverride:'EVITAR',
+    analysis:'Pagos cross-border con <a href="#">tracción institucional y RWA en XRPL</a>, pero mcap gigante = poca asimetría.' },
+  { tk:'XLM', name:'Stellar', cat:'pagos', price:0.2221, chg:-11.9, mcap:'$8.72B', ath:'$0.8750', bajo:'75%',
+    crit:[0,0,1,0,1,1,1,0], tierOverride:'EVITAR',
+    analysis:'Pagos + RWA con <a href="#">el partnership de DTCC</a> ($114T en settlement) como catalizador estructural.' },
+  { tk:'HBAR', name:'Hedera', cat:'pagos', price:0.0888, chg:-4.3, mcap:'$3.9B', ath:'$0.5692', bajo:'84%',
+    crit:[0,0,1,0,1,1,1,0], tierOverride:'EVITAR',
+    analysis:'Blockchain <a href="#">enterprise</a> para RWA, pagos y compliance, con adopción corporativa y listing en Japón.' },
+  { tk:'XPL', name:'Plasma', cat:'pagos', price:0.0905, chg:-1.0, mcap:'$169M', ath:'$1.68', bajo:'95%',
+    crit:[0,0,1,0,1,1,1,0], warn:'Unlock 28-jul duplica el supply', tierOverride:'EVITAR',
+    analysis:'L1 de <a href="#">pagos stablecoin</a> (USDT zero-fee) con tesis fuerte… y una dilución inminente brutal.' },
+  { tk:'AVAX', name:'Avalanche', cat:'l1', price:8.45, chg:-3.7, mcap:'$3.89B', ath:'$144.96', bajo:'94%',
+    crit:[0,0,1,0,1,1,1,0], tierOverride:'EVITAR',
+    analysis:'L1 con <a href="#">tracción institucional</a> (CME futures, subnets RWA), pero large-cap y captura floja.' },
+  { tk:'XMR', name:'Monero', cat:'priv', price:341.70, chg:-5.8, mcap:'$7.43B', ath:'$797.00', bajo:'57%',
+    crit:[0,0,1,0,1,1,1,0], warn:'Deslistado de varios exchanges', tierOverride:'EVITAR',
+    analysis:'La <a href="#">moneda de privacidad más usada</a>, con el upgrade FCMP++, pero deslistada de muchos exchanges.' },
+  { tk:'NIGHT', name:'Midnight', cat:'priv', price:0.0380, chg:0.8, mcap:'$646M', ath:'$0.1200', bajo:'68%',
+    crit:[0,0,1,0,1,1,1,0], warn:'Recién lanzada — sin track record', tierOverride:'EVITAR',
+    analysis:'ZK-privacy de <a href="#">Charles Hoskinson</a> (Cardano) con partners enterprise reales, pero recién lanzada.' },
+  { tk:'WLD', name:'World', cat:'id', price:0.4130, chg:4.1, mcap:'$1.53B', ath:'$11.74', bajo:'96%',
+    crit:[0,0,1,0,1,1,1,0], warn:'Dilución por unlocks pendientes', tierOverride:'EVITAR',
+    analysis:'<a href="#">Proof-of-personhood</a> a escala (World ID): humanos en la era de los bots de IA. Pero unlocks pesan.' },
+  { tk:'VIRTUAL', name:'Virtuals Protocol', cat:'ia', price:0.7279, chg:3.2, mcap:'$466M', ath:'$5.07', bajo:'86%',
+    crit:[0,0,1,0,1,1,1,0], tierOverride:'EVITAR',
+    analysis:'Narrativa AI-agents caliente, pero el revenue colapsó desde el pico. Pagás el relato.' },
+  { tk:'H', name:'Humanity Protocol', cat:'id', price:0.6515, chg:5.0, mcap:'$2.37B', ath:'$0.8480', bajo:'23%',
+    crit:[0,0,1,0,1,0,1,0], warn:'Ya corrió fuerte — no subvaluado', tierOverride:'EVITAR',
+    analysis:'Proof of humanity con narrativa caliente, pero parabólico = comprar el techo.' },
+  { tk:'FIL', name:'Filecoin', cat:'data', price:0.9011, chg:-1.8, mcap:'$739M', ath:'$236.84', bajo:'100%',
+    crit:[0,0,1,0,1,1,1,0], tierOverride:'EVITAR',
+    analysis:'Fees ínfimos; toda la tesis depende de un pivote sin probar. -99% no es piso garantizado.' },
+  { tk:'GRT', name:'The Graph', cat:'data', price:0.085, chg:-3.0, mcap:'$820M', ath:'$2.88', bajo:'97%',
+    crit:[0,0,1,0,1,1,1,0], tierOverride:'EVITAR',
+    analysis:'1,2 billones de queries y el token casi no captura nada. Problema estructural y viejo.' },
+  { tk:'ICP', name:'Internet Computer', cat:'l1', price:4.20, chg:-3.5, mcap:'$2.0B', ath:'$750.73', bajo:'99%',
+    crit:[0,0,0,0,1,1,1,0], tierOverride:'EVITAR',
+    analysis:'-99,6% del ATH y fees mínimos. La repreciación depende 100% de una adopción que no llega.' },
+  { tk:'THETA', name:'Theta Network', cat:'data', price:0.55, chg:-4.0, mcap:'$550M', ath:'$15.72', bajo:'96%',
+    crit:[0,0,1,0,1,1,1,0], tierOverride:'EVITAR',
+    analysis:'El video descentralizado perdió la pulseada contra IA/RWA. Sin catalizador de demanda.' },
+];
+
+// Lookup rápido para fusionar la curaduría con tokens del universo
+const CURATED_BY_TK = Object.fromEntries(CURATED_TOKENS.map(t => [t.tk, t]));
+
+// TOKENS es mutable: arranca como copia profunda de la curaduría y al cargar el
+// universo se reemplaza por la lista expandida (curaduría + tokens descubiertos).
+let TOKENS = CURATED_TOKENS.map(t => ({ ...t, crit: t.crit.slice() }));
+
+// Portfolios fijos (fallback antes de que cargue el universo)
+const PORTFOLIOS = {
+  res: [
+    ['BTC',  'Reserva de valor · ancla principal', 40],
+    ['ETH',  'Ancla L1 + capa RWA', 25],
+    ['SOL',  'L1 con tracción institucional', 10],
+    ['LINK', 'Oracle líder, infra de RWA', 7],
+    ['AAVE', 'DeFi blue-chip rentable', 6],
+    ['JUP',  'Líder DeFi Solana, buyback', 4],
+    ['LDO',  'Liquid staking líder', 3],
+    ['UNI',  'DEX líder, fee-switch', 3],
+    ['HBAR', 'Enterprise blockchain', 2],
+  ],
+  bal: [
+    ['BTC','Ancla / reserva de valor', 18],
+    ['ETH','Ancla L1 + capa RWA', 9],
+    ['RENDER','DePIN con flujo real (#1)', 9],
+    ['AR','Mejor estructura de oferta', 8],
+    ['ATH','GPU enterprise, ARR vs mcap', 7],
+    ['AKT','Cómputo IA deflacionario', 6],
+    ['AAVE','DeFi rentable y barato', 6],
+    ['SKY','RWA rentable con buyback', 5],
+    ['SYRUP','Crédito RWA con buyback', 5],
+    ['JUP','Líder DeFi Solana, buyback', 4],
+    ['GRASS','Datos IA con revenue', 4],
+    ['ENA','Fee-switch a buyback', 4],
+    ['LINK','RWA de calidad', 4],
+    ['ENS','Identidad ETH rentable', 3],
+    ['PENDLE','Yield trading on-chain rentable', 3],
+    ['LDO','Líder de liquid staking', 2],
+    ['INJ','L1 financiera con buyback semanal', 2],
+    ['PYTH','Oracle institucional (TradFi)', 1],
+    ['MORPHO','Lending modular usado por instituciones', 1],
+    ['HNT','DePIN telecom con revenue real', 1],
+  ],
+  agg: [
+    ['RENDER','Top pick del ranking', 11],
+    ['AR','Mayor asimetría / oferta fija', 10],
+    ['ATH','ARR $156M vs mcap $117M', 9],
+    ['AKT','Cómputo IA deflacionario', 8],
+    ['AAVE','DeFi rentable', 7],
+    ['SKY','RWA rentable con buyback', 6],
+    ['SYRUP','Crédito RWA con buyback', 6],
+    ['JUP','Líder DeFi Solana', 5],
+    ['GRASS','Datos IA con revenue', 5],
+    ['ENA','Fee-switch a buyback', 5],
+    ['LINK','RWA de calidad', 4],
+    ['ENS','Identidad ETH', 4],
+    ['IO','GPU DePIN agresivo', 4],
+    ['PENDLE','Yield trading rentable', 4],
+    ['MORPHO','Lending modular, TVL acompañando', 3],
+    ['INJ','L1 con buyback semanal', 3],
+    ['TAO','Bittensor — subredes IA', 2],
+    ['HNT','DePIN telecom con ingresos', 2],
+    ['PYTH','Oracle institucional', 1],
+    ['ARB','L2 líder por TVL', 1],
+  ],
+};
+
+// === Mapping a CoinGecko (id de la API) ===
+// Si algún ticker no existe en CG (ej. Plasma, Midnight, Humanity recién lanzadas),
+// se mantiene el valor hardcodeado como fallback.
+const CG_IDS = {
+  BTC:'bitcoin', ETH:'ethereum',
+  RENDER:'render-token', AR:'arweave', AAVE:'aave', AKT:'akash-network',
+  ENS:'ethereum-name-service', ATH:'aethir', GRASS:'grass', ENA:'ethena',
+  SYRUP:'maple', JUP:'jupiter-exchange-solana', LINK:'chainlink', UNI:'uniswap',
+  SKY:'sky', ONDO:'ondo-finance', LDO:'lido-dao', FET:'fetch-ai',
+  TAO:'bittensor', INJ:'injective-protocol', PYTH:'pyth-network', HNT:'helium',
+  SOL:'solana', BNB:'binancecoin',
+  IO:'io', NEAR:'near', PENDLE:'pendle', MORPHO:'morpho',
+  ARB:'arbitrum', OP:'optimism', ZEC:'zcash', TIA:'celestia',
+  EIGEN:'eigenlayer', XRP:'ripple', XLM:'stellar', HBAR:'hedera-hashgraph',
+  AVAX:'avalanche-2', XMR:'monero', WLD:'worldcoin-wld', VIRTUAL:'virtual-protocol',
+  FIL:'filecoin', GRT:'the-graph', ICP:'internet-computer', THETA:'theta-token',
+  // sin id confiable en CG: XPL (Plasma), NIGHT (Midnight), H (Humanity) → quedan con fallback
+};
+
+// === Mapping a DefiLlama (slug en /protocols y /overview/fees) ===
+// Solo aplica a protocolos con TVL/fees medibles. Si no figura → no recomputamos
+// los criterios y se mantienen los del fallback hardcodeado.
+const LLAMA_IDS = {
+  AAVE:'aave', UNI:'uniswap', JUP:'jupiter', LDO:'lido', PENDLE:'pendle',
+  MORPHO:'morpho', ONDO:'ondo-finance', ENA:'ethena', SYRUP:'maple-finance',
+  SKY:'sky', RENDER:'render-network', AKT:'akash-network', AR:'arweave',
+  ENS:'ens', GRASS:'grass', ATH:'aethir', LINK:'chainlink', INJ:'injective',
+  PYTH:'pyth-network', HNT:'helium', IO:'io.net', TAO:'bittensor',
+  FET:'fetch-ai', ARB:'arbitrum', OP:'optimism', NEAR:'near',
+  TIA:'celestia', EIGEN:'eigenlayer', FIL:'filecoin', GRT:'the-graph',
+  AVAX:'avalanche', HBAR:'hedera',
+};
+
+// === Umbrales editables (ajústalos a gusto) ===
+const THRESHOLDS = {
+  flujoMin30dUsd:   1_000_000,   // fees 30d ≥ $1M  → "Flujo real"
+  rentableAnualPct: 5,           // (fees_30d*12) / mcap ≥ 5%  → "Rentable (FIS+)"
+  crecimientoPct:   10,          // crecimiento fees 30d vs prev ≥ 10% → "Crecimiento"
+  descuentoAthPct:  70,          // ≥ 70% bajo ATH  → "Descuento vs ATH"
+  ofertaCircPct:    80,          // circulating/total ≥ 80% → "Oferta sin dilución"
+  demandaVolMcapPct: 3,          // volume_24h / mcap ≥ 3% → "Demanda externa" (proxy de liquidez real)
+  universoTopPerCat: 25,         // tokens por categoría a traer (top mcap)
+};
+
+// === Modo Universo: categorías de CoinGecko → categorías locales ===
+// Mapea cada slug de categoría en CG a nuestro key local (CATEGORIES).
+// Si CG cambia un slug, basta con actualizar este map.
+const CG_CATEGORIES = [
+  { cg: 'artificial-intelligence',           local: 'ia',    label: 'IA descentralizada' },
+  { cg: 'gaming-entertainment-social',       local: 'ia',    label: 'IA (fallback)' },
+  { cg: 'depin',                             local: 'depin', label: 'DePIN físico' },
+  { cg: 'data-availability',                 local: 'data',  label: 'Datos & Storage' },
+  { cg: 'storage',                           local: 'data',  label: 'Storage' },
+  { cg: 'real-world-assets-rwa',             local: 'rwa',   label: 'RWA & Tokenización' },
+  { cg: 'tokenized-assets',                  local: 'rwa',   label: 'Tokenized Assets' },
+  { cg: 'gpu',                               local: 'gpu',   label: 'Cómputo / GPU' },
+  { cg: 'decentralized-finance-defi',        local: 'defi',  label: 'DeFi & Perps' },
+  { cg: 'derivatives',                       local: 'defi',  label: 'Derivatives' },
+  { cg: 'liquid-staking',                    local: 'defi',  label: 'Liquid Staking' },
+  { cg: 'lending-borrowing',                 local: 'defi',  label: 'Lending' },
+  { cg: 'oracle',                            local: 'rwa',   label: 'Oracles' },
+  { cg: 'layer-1',                           local: 'l1',    label: 'L1 / Smart Contracts' },
+  { cg: 'smart-contract-platform',           local: 'l1',    label: 'L1 / Smart Contracts' },
+  { cg: 'layer-2',                           local: 'l1',    label: 'L2' },
+  { cg: 'payment-solutions',                 local: 'pagos', label: 'Pagos & Financieras' },
+  { cg: 'privacy-coins',                     local: 'priv',  label: 'Privacidad' },
+  { cg: 'identity',                          local: 'id',    label: 'Identidad' },
+];
+
+// Narrativas vivas hoy → "narrativa correcta" se activa para tokens en estas categorías locales.
+// Storage (data), identidad y L1/Smart Contracts son infraestructura del ciclo IA/RWA/DeFi.
+// Pagos y privacidad históricamente no han sido drivers (megacaps con poca asimetría).
+const HOT_NARRATIVES = new Set(['ia', 'rwa', 'depin', 'gpu', 'defi', 'data', 'id', 'l1']);
+
+// Lista negra de narrativas muertas: tokens cuya categoría está en HOT_NARRATIVES
+// pero cuyo nicho específico perdió relevancia. Ej: THETA está en 'data' pero su
+// negocio real es video descentralizado (perdió contra YouTube/Twitch hace años,
+// nada que ver con storage para IA). El bonus de narrativa correcta se DESACTIVA
+// para estos. La categoría no los castiga doble — solo no los premia por algo
+// que no tienen. Esto es el equivalente algorítmico del juicio editorial.
+const DEAD_NARRATIVES = new Set([
+  'THETA',    // video descentralizado, perdió contra streaming tradicional + IA
+  'STORJ',    // storage genérico sin pivote IA, eclipsado por AR/FIL
+  'GRT',      // The Graph: 1.2T queries, captura ínfima — problema estructural viejo
+  'ICP',      // -99% del ATH, fees mínimos, adopción que no llega
+  'THETA_FUEL', // sub-token de Theta
+]);
+
+// Stablecoins, wrapped tokens, derivados y reservas → se filtran del ranking
+// (BTC/ETH viven en la sección "Reserva", no compiten en oportunidad asimétrica)
+const EXCLUDE_PATTERNS = [
+  /^USD/i, /USDT$/i, /USDC$/i, /DAI$/i, /^FRAX/i, /^TUSD/i, /^MIM/i, /BUSD/i, /^USDE$/i, /^PYUSD$/i,
+  /^WBTC/i, /^WETH/i, /^STETH/i, /^WSTETH/i, /^CBETH/i, /^WBETH/i, /^RETH/i, /^EZETH/i, /^WEETH/i,
+  /^WBNB/i, /^WMATIC/i, /^WAVAX/i, /^WSOL/i, /^WTAO/i,
+  /^BTC$/i, /^ETH$/i,    // reservas — no se evalúan como oportunidad asimétrica
+];
+function isExcluded(symbol) {
+  return EXCLUDE_PATTERNS.some(re => re.test(symbol));
+}
+
+// === Estado ===
+let state = {
+  cat: 'todas',
+  tier: 'todos',             // filtro por tier (TOP / SÓLIDO / etc.)
+  mode: 'bal',
+  lastSync: null,
+  syncing: false,
+  syncError: false,
+  search: '',                // texto del input de búsqueda
+  externalResults: [],       // tokens traídos desde CoinGecko on-demand
+  externalSearching: false,  // flag de carga
+};
+
+// === Helpers ===
+// Score = suma de pesos de criterios cumplidos × penalty de dilución estructural.
+// El penalty refleja que un token con 40% en circulación tiene 60% de supply futuro
+// presionando precio, sin importar cuán buenos sean sus fundamentos hoy.
+// Desglose en tres pilares:
+//   CALIDAD       = oferta + flujo + crece + rent   (criterios 0,1,2,3) → max 51
+//   OPORTUNIDAD   = narr + desc + dem + val          (criterios 4,5,6,7) → max 49
+//   RIESGO        = (1 - dilutionMult × categoryMult) × bruto   (penalización aplicada)
+// Total = (CALIDAD + OPORTUNIDAD) × dilutionMult × categoryMult
+//
+// El crítico tenía razón: mostrar solo "SUI 33 EVITAR" oculta que SUI tiene buenos
+// fundamentos. El desglose hace visible qué pilar arrastra. Honestidad sobre cómo
+// se construye el número, sin recalibrar el modelo para favorecer el relato.
+function computeScoreBreakdown(t) {
+  const CAL_IDX = [0, 1, 2, 3];
+  const OPP_IDX = [4, 5, 6, 7];
+  const valOf = (i) => {
+    // Rent (índice 3) puede ser CONTINUO si DefiLlama dio fees reales.
+    if (i === 3 && typeof t._rentFrac === 'number') return CRITERIA[i].w * t._rentFrac;
+    return t.crit[i] ? CRITERIA[i].w : 0;
+  };
+  const calidad     = CAL_IDX.reduce((s, i) => s + valOf(i), 0);
+  const oportunidad = OPP_IDX.reduce((s, i) => s + valOf(i), 0);
+  const calMax = CAL_IDX.reduce((s, i) => s + CRITERIA[i].w, 0);
+  const oppMax = OPP_IDX.reduce((s, i) => s + CRITERIA[i].w, 0);
+  const raw = calidad + oportunidad;
+
+  let dilutionMult = 1;
+  if (t._circ && t._total) {
+    const ratio = t._circ / t._total;
+    if      (ratio < 0.50) dilutionMult = 0.78;
+    else if (ratio < 0.70) dilutionMult = 0.88;
+    else if (ratio < 0.85) dilutionMult = 0.95;
+  }
+  let categoryMult = 1;
+  if (t.cat === 'meme')         categoryMult = 0.50;
+  else if (t.cat === 'legacy')  categoryMult = 0.45;
+  else if (t.cat === 'unknown') categoryMult = 0.60;
+
+  const adj = raw * dilutionMult * categoryMult;
+  const final = Math.max(0, Math.min(100, Math.round(adj)));
+  const riskDeduct = Math.round(raw - adj);    // cuánto se pierde por penalty
+  return {
+    calidad: Math.round(calidad), calMax,
+    oportunidad: Math.round(oportunidad), oppMax,
+    raw: Math.round(raw),
+    dilutionMult, categoryMult,
+    riskDeduct,
+    final,
+  };
+}
+
+function computeScore(t) {
+  let raw = 0;
+  // Rent (índice 3) puede ser CONTINUO si tenemos fees reales de DefiLlama:
+  // t._rentFrac ∈ [0,1] representa qué tan cerca está la rentabilidad anual del threshold.
+  // AAVE a 12% anual sobre mcap vs RENDER a 5% ya no empatan — el primero se lleva
+  // el peso completo (13), el segundo la mitad. Para el resto de criterios y arquetipos
+  // sin DefiLlama, seguimos en binario (más conservador, evita inflar por estimaciones).
+  CRITERIA.forEach((c, i) => {
+    if (i === 3 && typeof t._rentFrac === 'number') {
+      raw += c.w * t._rentFrac;
+    } else if (t.crit[i]) {
+      raw += c.w;
+    }
+  });
+
+  // Penalty multiplicativo por dilución (basado en circulating/total supply).
+  // SUI 40% circulando = el 60% restante presiona precio durante años. La penalización
+  // sigue siendo multiplicativa (la dilución es viento estructural compuesto, no costo
+  // fijo), pero la curva se suavizó: la versión vieja (0.65/0.80/0.92) era terminal y
+  // condenaba a EVITAR a proyectos con fundamentos buenos pero supply pendiente.
+  // Ahora penaliza fuerte pero sin aniquilar — SUI puede ser ESPECULATIVO, no EVITAR.
+  let dilutionMult = 1;
+  if (t._circ && t._total) {
+    const ratio = t._circ / t._total;
+    if      (ratio < 0.50) dilutionMult = 0.78;     // -22% (era -35%)
+    else if (ratio < 0.70) dilutionMult = 0.88;     // -12% (era -20%)
+    else if (ratio < 0.85) dilutionMult = 0.95;     // -5%  (era -8%)
+  }
+
+  // Penalty multiplicativo por CATEGORÍA — el "no es un negocio" check.
+  // Las memecoins pueden 10× pero NO son una "oportunidad subvaluada" en sentido Buffett.
+  // Lo mismo dead chains. Si su asimetría matemática es alta, la penalty estructural
+  // las baja al rango EVITAR, que es donde corresponden en este framework.
+  let categoryMult = 1;
+  if (t.cat === 'meme')    categoryMult = 0.50;      // -50%: pura especulación
+  else if (t.cat === 'legacy')  categoryMult = 0.45; // -55%: chain muerto o token rebrandeado
+  else if (t.cat === 'unknown') categoryMult = 0.60; // -40%: no logramos identificar negocio
+
+  const adj = raw * dilutionMult * categoryMult;
+  return Math.max(0, Math.min(100, Math.round(adj)));
+}
+
+// Tiers ajustados: thresholds bajados porque el score promedio cae con el penalty.
+// Umbral SÓLIDO bajado de 63 a 60: un score de 60+ con narrativa correcta + descuento
+// real + fees medibles ya es un caso de buena convicción (LINK ~61), no especulativo.
+// El cambio refleja que tras los fixes de dilución/asimetría, 60 es el nuevo "sólido".
+function tierOf(t) {
+  if (t.tierOverride) return t.tierOverride;
+  const s = computeScore(t);
+  if (s >= 78) return 'TOP';
+  if (s >= 60) return 'SÓLIDO';
+  if (s >= 45) return 'ESPECULATIVO';
+  return 'EVITAR';
+}
+
+function tierMeta(tier) {
+  return ({
+    'TOP':           { cls:'tier-top',   sub:'Calidad subvaluada — alta convicción',             ring:'#c084fc' },
+    'SÓLIDO':        { cls:'tier-solid', sub:'Buena oportunidad con matices',                    ring:'#7dd3fc' },
+    'ESPECULATIVO':  { cls:'tier-spec',  sub:'Acumulación gradual — volatilidad aceptada',       ring:'#fbbf24' },
+    'EVITAR':        { cls:'tier-avoid', sub:'Fundamentos débiles o estructura comprometida',    ring:'#fb7185' },
+  })[tier];
+}
+
+// El chip cuenta solo oportunidades reales (las EVITAR no se rankean, viven en Trampas).
+// "Todas" además respeta el cap de 50 del ranking — no podemos prometer 60 si solo
+// renderizamos 50. Las categorías sí muestran el total real (informativo).
+// Si el usuario está buscando explícitamente, mostramos el total sin filtro de tier.
+// Si filtró por un tier específico (TOP/SÓLIDO/etc), las categorías se cuentan
+// dentro de ese tier para que los números sean consistentes con lo que ve el grid.
+function catCount(catKey) {
+  let base;
+  if (state.search) {
+    base = TOKENS;
+  } else if (state.tier === 'EVITAR') {
+    base = TOKENS.filter(t => tierOf(t) === 'EVITAR');
+  } else if (state.tier !== 'todos') {
+    base = TOKENS.filter(t => tierOf(t) === state.tier);
+  } else {
+    base = TOKENS.filter(t => tierOf(t) !== 'EVITAR');
+  }
+  if (catKey === 'todas') {
+    return state.search || state.tier !== 'todos' ? base.length : Math.min(base.length, 50);
+  }
+  return base.filter(t => t.cat === catKey).length;
+}
+
+// Cuenta tokens por tier (ignora filtro de categoría/tier actual — siempre muestra
+// el total disponible en cada tier, así el usuario sabe cuánto hay antes de filtrar).
+function tierCount(tierKey) {
+  const base = state.cat === 'todas'
+    ? TOKENS
+    : TOKENS.filter(t => t.cat === state.cat);
+  if (tierKey === 'todos') {
+    return base.filter(t => tierOf(t) !== 'EVITAR').length;
+  }
+  return base.filter(t => tierOf(t) === tierKey).length;
+}
+
+// === Render ===
+function renderFilters() {
+  const root = document.getElementById('filters');
+  root.innerHTML = CATEGORIES.map(([k,name]) => `
+    <button class="chip ${state.cat===k?'active':''}" onclick="setCat('${k}')">
+      ${name} <span class="count">${catCount(k)}</span>
+    </button>
+  `).join('');
+  renderTierFilters();
+}
+
+function renderTierFilters() {
+  const root = document.getElementById('tierFilters');
+  if (!root) return;
+  root.innerHTML = TIERS_FILTER.map(([k,name]) => `
+    <button class="chip ${state.tier===k?'active':''}" onclick="setTier('${k}')">
+      ${name} <span class="count">${tierCount(k)}</span>
+    </button>
+  `).join('');
+}
+
+function setCat(k) { state.cat = k; renderFilters(); renderTokens(); }
+function setTier(k) { state.tier = k; renderFilters(); renderTokens(); }
+
+// === Búsqueda ===
+function onSearchInput() {
+  const input = document.getElementById('searchInput');
+  state.search = input.value.trim();
+  // Limpiar resultados externos al cambiar la query
+  state.externalResults = [];
+
+  // Visibilidad de los botones
+  document.getElementById('searchClearBtn').style.display = state.search ? 'inline-block' : 'none';
+
+  // Contar matches locales
+  const q = state.search.toLowerCase();
+  const matches = q ? TOKENS.filter(t =>
+    t.tk.toLowerCase().includes(q) || (t.name||'').toLowerCase().includes(q)
+  ).length : 0;
+
+  // Hint debajo del input
+  const hint = document.getElementById('searchHint');
+  const btnExt = document.getElementById('searchExtBtn');
+  if (!q) {
+    hint.innerHTML = '';
+    btnExt.style.display = 'none';
+  } else if (matches > 0) {
+    hint.innerHTML = `<span class="ok">●</span> ${matches} ${matches===1?'token coincide':'tokens coinciden'} en el universo cargado`;
+    btnExt.style.display = 'none';
+  } else {
+    hint.innerHTML = `<span class="warn">●</span> Sin resultados locales para "${q}". Búscalo directamente en CoinGecko →`;
+    btnExt.style.display = 'inline-block';
+  }
+  renderTokens();
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  state.search = '';
+  state.externalResults = [];
+  document.getElementById('searchHint').innerHTML = '';
+  document.getElementById('searchClearBtn').style.display = 'none';
+  document.getElementById('searchExtBtn').style.display = 'none';
+  renderTokens();
+}
+
+async function searchExternal() {
+  const q = state.search;
+  if (!q || state.externalSearching) return;
+  state.externalSearching = true;
+  const hint = document.getElementById('searchHint');
+  const btnExt = document.getElementById('searchExtBtn');
+  hint.innerHTML = `<span class="warn">◐</span> Buscando "${q}" en CoinGecko…`;
+  btnExt.disabled = true;
+
+  try {
+    // 1. /search devuelve candidatos por nombre/símbolo
+    const sRes = await cgFetch(`https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(q)}`, { cache: 'no-store' });
+    if (!sRes.ok) throw new Error('search HTTP ' + sRes.status);
+    const sJson = await sRes.json();
+    const candidates = (sJson.coins || []).slice(0, 5);
+    if (!candidates.length) {
+      hint.innerHTML = `<span class="err">✕</span> CoinGecko no encontró ningún token con "${q}".`;
+      btnExt.disabled = false;
+      state.externalSearching = false;
+      return;
+    }
+
+    // 2. Trae market data de esos candidatos
+    const ids = candidates.map(c => c.id).join(',');
+    const mRes = await cgFetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids}&per_page=${candidates.length}&page=1&sparkline=false&price_change_percentage=24h`, { cache: 'no-store' });
+    if (!mRes.ok) throw new Error('markets HTTP ' + mRes.status);
+    const mData = await mRes.json();
+
+    // 3. Construir tokens aplicando los mismos criterios
+    const externals = mData.map(c => {
+      const cat = guessCategoryFromCG(c);
+      const t = buildTokenFromCG(c, cat);
+      t._external = true;                         // marca para badge "BUSCADO"
+      // Calcular criterios desde la data cruda + DefiLlama si aplica
+      const ll = findLlama(t.tk);
+      t.crit = computeCritFromData(t, c, ll);
+      // Quitar overlay curado de tier (que la fórmula mande), EXCEPTO si la
+      // curaduría marcó EVITAR — ese es el backstop editorial para narrativas
+      // muertas (THETA, ICP, etc.) que la fórmula no puede detectar sin data
+      // de momentum / atención.
+      if (c.market_cap && t.tierOverride !== 'EVITAR') delete t.tierOverride;
+      // % bajo ATH on-the-fly
+      if (c.current_price != null && c.ath) {
+        t.bajo = fmtBajoAth(c.current_price, c.ath);
+      }
+      return t;
+    });
+
+    state.externalResults = externals;
+    hint.innerHTML = `<span class="ok">●</span> ${externals.length} ${externals.length===1?'token traído':'tokens traídos'} de CoinGecko · scores calculados con los 8 criterios`;
+    renderTokens();
+    // Scroll al primer resultado
+    setTimeout(() => {
+      const first = document.querySelector(`[data-tk="${externals[0].tk}"]`);
+      if (first) first.scrollIntoView({behavior:'smooth', block:'start'});
+    }, 60);
+  } catch (e) {
+    console.error('searchExternal falló:', e);
+    hint.innerHTML = `<span class="err">✕</span> Falló la búsqueda: ${e.message}`;
+  } finally {
+    btnExt.disabled = false;
+    state.externalSearching = false;
+  }
+}
+
+function renderTokens() {
+  const root = document.getElementById('grid');
+  let list = TOKENS.slice();
+  // Filtro por categoría
+  if (state.cat !== 'todas') list = list.filter(t => t.cat === state.cat);
+  // Filtro por búsqueda (ticker o nombre)
+  if (state.search) {
+    const q = state.search.toLowerCase();
+    list = list.filter(t =>
+      t.tk.toLowerCase().includes(q) ||
+      (t.name||'').toLowerCase().includes(q)
+    );
+  }
+  // Calcular score y ordenar desc
+  list.forEach(t => t._score = computeScore(t));
+  // Filtro de tier: por defecto EVITAR queda fuera (vive en Trampas).
+  // Override consciente: si el usuario buscó por texto o seleccionó tier EVITAR
+  // explícitamente, los dejamos pasar.
+  if (state.tier === 'EVITAR') {
+    list = list.filter(t => tierOf(t) === 'EVITAR');
+  } else if (state.tier !== 'todos') {
+    list = list.filter(t => tierOf(t) === state.tier);
+  } else if (!state.search) {
+    list = list.filter(t => tierOf(t) !== 'EVITAR');
+  }
+  list.sort((a,b) => b._score - a._score);
+  // Cap duro: el ranking de oportunidad muestra como máximo las 50 mejores.
+  // Más allá del top 50 ya no es "oportunidad alta convicción", es ruido.
+  // Si el usuario está buscando o filtrando por tier específico, no aplicamos el cap.
+  if (!state.search && state.tier === 'todos') list = list.slice(0, 50);
+  // Resultados externos (buscados desde CoinGecko on-demand): pinned arriba
+  if (state.externalResults.length) {
+    state.externalResults.forEach(t => t._score = computeScore(t));
+    list = [...state.externalResults, ...list];
+  }
+
+  root.innerHTML = list.map((t, idx) => {
+    const tier = tierOf(t);
+    const m = tierMeta(tier);
+    const catName = (CATEGORIES.find(c => c[0] === t.cat) || ['','—'])[1];
+    const bd = computeScoreBreakdown(t);
+    const calPct = Math.round((bd.calidad / bd.calMax) * 100);
+    const oppPct = Math.round((bd.oportunidad / bd.oppMax) * 100);
+    const riskPct = bd.raw > 0 ? Math.round((bd.riskDeduct / bd.raw) * 100) : 0;
+    return `
+      <div class="card ${m.cls}${t._external ? ' searched' : ''}" data-tk="${t.tk}">
+        <div class="card-head">
+          <div class="ticker-badge">${t.tk.slice(0,3)}</div>
+          <div class="card-title">
+            <h3>${t.tk}</h3>
+            <div class="name">${t.name}</div>
+            <div class="cat-tag">⌬ ${catName.toUpperCase()}</div>
+          </div>
+          <div class="card-rank">
+            <span>#${idx+1}</span>
+            <span class="live-dot ${t._sourceLive?'':'fallback'}" title="${t._sourceLive?'Criterios calculados desde CoinGecko + DefiLlama':'Sin datos en vivo — usando valores de referencia'}">
+              ${t._sourceLive?'● EN VIVO':'○ REF'}
+            </span>
+          </div>
+        </div>
+
+        <div class="price-row">
+          <span class="price">${fmtUsd(t.price)}</span>
+          ${t.chg!==0 ? `<span class="change ${t.chg>0?'up':'down'}">${t.chg>0?'+':''}${t.chg}%</span>` : ''}
+        </div>
+        <div class="meta">
+          <span><strong>Mcap</strong> ${t.mcap}</span>
+          <span><strong>ATH</strong> ${t.ath}</span>
+          <span title="precio ${t.price} / ATH ${t._athRaw || parseAthString(t.ath)}">${fmtBajoAth(t.price, t._athRaw || parseAthString(t.ath))} bajo ATH</span>
+        </div>
+        <div class="opp-row">
+          <span class="opp" title="Multiplicador teórico al ATH"><span class="lbl">ATH en X:</span>${fmtOportunidad(t.price, t._athRaw || parseAthString(t.ath))}</span>
+          <span class="opp real" title="Estimación realista (ajustada por score ${computeScore(t)} y tier ${tierOf(t)}, capeada al 80% del techo teórico)"><span class="lbl">Oportunidad Real en X:</span>${fmtOportunidadReal(t)}</span>
+        </div>
+
+        <div class="score-block">
+          <div class="score-ring" style="--score:${t._score};--ring-color:${m.ring}">
+            <span>${t._score}</span>
+          </div>
+          <div>
+            <div class="tier-label">${tier}</div>
+            <div class="tier-sub">${m.sub}</div>
+            ${t.warn ? `<div class="warn">⚠ ${t.warn}</div>` : ''}
+          </div>
+        </div>
+
+        <div class="score-breakdown" title="Desglose del score: cuánto viene de fundamentos (Calidad), cuánto de descuento/asimetría (Oportunidad), y cuánto resta el riesgo estructural (dilución + categoría).">
+          <div class="sb-item">
+            <div class="sb-label">Calidad</div>
+            <div class="sb-value">${bd.calidad}/${bd.calMax}</div>
+            <div class="sb-bar"><span class="cal" style="width:${calPct}%"></span></div>
+          </div>
+          <div class="sb-item">
+            <div class="sb-label">Oportunidad</div>
+            <div class="sb-value">${bd.oportunidad}/${bd.oppMax}</div>
+            <div class="sb-bar"><span class="opp" style="width:${oppPct}%"></span></div>
+          </div>
+          <div class="sb-item">
+            <div class="sb-label">Riesgo</div>
+            <div class="sb-value risk">${bd.riskDeduct > 0 ? '−' + bd.riskDeduct : '0'}</div>
+            <div class="sb-bar"><span class="risk" style="width:${Math.min(100, riskPct)}%"></span></div>
+          </div>
+        </div>
+
+        <div class="criteria">
+          ${CRITERIA.map((c,i) => `
+            <div class="crit ${t.crit[i]?'on':'off'}" title="${t.crit[i]?'Criterio cumplido según el análisis':'Criterio no cumplido según el análisis'}">
+              <div class="box">${t.crit[i]?'✓':'×'}</div>${c.label}
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="analysis">
+          ${t.analysis}
+          ${buildLiveTakeaway(t)}
+          <br><span class="more" onclick="toggleExpand('${t.tk}')">${t._expanded?'⌃ Ocultar análisis':'› Ver análisis'}</span>
+        </div>
+        ${t._expanded ? buildAnalysisDetail(t) : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+// (Eliminado) toggleCrit: los criterios ahora son informativos, no editables.
+// El estado de cada uno proviene del análisis automático (CoinGecko + DefiLlama).
+
+// Expandir / colapsar el panel de análisis detallado de una tarjeta
+function toggleExpand(tk) {
+  const t = TOKENS.find(x => x.tk === tk);
+  if (!t) return;
+  t._expanded = !t._expanded;
+  renderTokens();
+  // Scroll suave para que el panel quede visible
+  setTimeout(() => {
+    const card = document.querySelector(`[data-tk="${tk}"]`);
+    if (card && t._expanded) card.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }, 50);
+}
+
+// Construye el panel de detalle: razón de cada criterio + datos en vivo + enlaces
+function buildAnalysisDetail(t) {
+  const cgId = t._cgId || CG_IDS[t.tk];   // universo o curaduría
+  const llamaSlug = LLAMA_IDS[t.tk];
+  const ll = findLlama(t.tk);
+  const T = THRESHOLDS;
+  const fmtUsdCompact = v => (v == null || !isFinite(v) || v <= 0) ? '—'
+    : v >= 1e9 ? '$'+(v/1e9).toFixed(2)+'B'
+    : v >= 1e6 ? '$'+(v/1e6).toFixed(2)+'M'
+    : v >= 1e3 ? '$'+(v/1e3).toFixed(1)+'K'
+    : '$'+v.toFixed(0);
+
+  // Razón por criterio según arquetipo detectado
+  const arch = t._archetype || detectArchetype(t, ll);
+  const inHot = HOT_NARRATIVES.has(t.cat);
+  const mcapNum = parseAthString(t.mcap);
+  const vol = t._volume24h || 0;
+  const turnoverDay = (mcapNum && vol) ? (vol / mcapNum) * 100 : null;
+
+  const reasons = CRITERIA.map((c, i) => {
+    const on = t.crit[i];
+    let reason = on ? 'cumple' : 'no cumple';
+
+    if (i === 0) {
+      const cr = (t._circ && t._total) ? (t._circ/t._total*100).toFixed(0) : '—';
+      reason = `circulando: ${cr}%  (umbral ≥ ${T.ofertaCircPct}%)`;
+    }
+    if (i === 1) {
+      if (arch === 'defi') {
+        const th = t._flujoThreshold || T.flujoMin30dUsd;
+        const tag = COMPUTE_NETWORKS.has(t.tk) ? ' [compute network]' : '';
+        const thLabel = th >= 1e6 ? `$${th/1e6}M` : `$${th/1e3}k`;
+        reason = `fees 30d: ${fmtUsdCompact(+ll.total30d)}  (≥ ${thLabel}${tag})`;
+      }
+      else if (arch === 'l1' && turnoverDay != null) reason = `L1: turnover diario ${turnoverDay.toFixed(1)}%  (≥ 5% = ecosistema activo)`;
+      else if (arch === 'infra' && turnoverDay != null) reason = `infra: turnover ${turnoverDay.toFixed(1)}%  (≥ 5% = uso medible)`;
+      else reason = `arquetipo legacy — sin métrica de uso`;
+    }
+    if (i === 2) {
+      if (arch === 'defi' && ll && ll.change_1m != null) reason = `Δ fees 1m: ${(+ll.change_1m).toFixed(1)}%  (≥ ${T.crecimientoPct}%)`;
+      else if (arch === 'l1' && mcapNum) reason = `L1: mcap ${fmtMcap(mcapNum)}  (< $3B = todavía sub-tier-1)`;
+      else if (arch === 'infra') reason = `infra sin DefiLlama — sin Δ fees medibles, no se afirma crecimiento`;
+      else reason = `sin métrica de crecimiento`;
+    }
+    if (i === 3) {
+      if (arch === 'defi' && ll && ll.total30d) {
+        const annualPct = mcapNum ? (ll.total30d * 12 / mcapNum) * 100 : null;
+        reason = annualPct != null
+          ? `rendimiento: ${annualPct.toFixed(1)}% anual  (≥ ${T.rentableAnualPct}%)`
+          : `fees ann/mcap ≥ ${T.rentableAnualPct}%`;
+      } else if (arch === 'l1' && mcapNum) {
+        reason = `L1: mcap ${fmtMcap(mcapNum)}  (< $5B = aún hay espacio)`;
+      } else if (arch === 'infra') {
+        reason = `infra sin DefiLlama — sin fees medibles, rentabilidad no demostrable`;
+      } else reason = `arquetipo legacy — sin asimetría estructural`;
+    }
+    if (i === 4) reason = inHot ? `categoría ${t.cat} ∈ narrativas hot` : `categoría ${t.cat} fuera de narrativas hot`;
+    if (i === 5) reason = `caída desde ATH ≥ ${T.descuentoAthPct}%`;
+    if (i === 6) {
+      if (turnoverDay != null) reason = `volumen/mcap: ${turnoverDay.toFixed(1)}%  (≥ ${T.demandaVolMcapPct}%)`;
+      else reason = `volumen 24h / mcap ≥ ${T.demandaVolMcapPct}%`;
+    }
+    if (i === 7) {
+      if (!mcapNum) reason = `sin mcap`;
+      else if (mcapNum < 500e6)  reason = `micro-cap ${fmtMcap(mcapNum)} + bajo ATH ≥ 70% (explosivo)`;
+      else if (mcapNum < 1.5e9)  reason = `small ${fmtMcap(mcapNum)} + bajo ATH ≥ 80% (5× viable)`;
+      else if (mcapNum < 3e9)    reason = `mid ${fmtMcap(mcapNum)} + bajo ATH ≥ 85% (3× viable)`;
+      else                        reason = `large ${fmtMcap(mcapNum)} — asimetría limitada`;
+    }
+    return `
+      <li class="${on?'on':'off'}">
+        <span class="mark">${on?'✓':'×'}</span>
+        <span class="label"><b>${c.label}</b> · peso ${c.w}</span>
+        <span class="reason">${reason}</span>
+      </li>`;
+  }).join('');
+
+  // Etiqueta del arquetipo detectado
+  const archLabel = {
+    defi:   'DeFi · protocolo con fees medibles en DefiLlama',
+    l1:     'L1 / Smart Contract Platform · el negocio es el ecosistema',
+    infra:  'Infraestructura (IA / GPU / DePIN / RWA / data / id)',
+    legacy: 'Legacy (pagos / privacidad / sin narrativa) · criterios 1-3 castigados',
+  };
+  const archHtml = `
+    <div style="margin-bottom:10px;padding:8px 10px;background:rgba(168,85,247,.06);border:1px solid var(--border);border-radius:6px;font-size:11.5px">
+      <strong style="color:var(--violet-bright)">Arquetipo:</strong> ${archLabel[arch] || '—'}
+    </div>`;
+
+  // Stats de mercado (CoinGecko) — siempre se muestran
+  const athRaw = t._athRaw || parseAthString(t.ath);
+  const bajoAth = fmtBajoAth(t.price, athRaw);
+  const opp = fmtOportunidad(t.price, athRaw);
+  const oppReal = fmtOportunidadReal(t);
+  const score = computeScore(t);
+  const tier = tierOf(t);
+  const cgHtml = `
+    <h5>Datos de mercado (CoinGecko)</h5>
+    <div class="stats">
+      <div><span>Precio</span><span>${fmtUsd(t.price)}</span></div>
+      <div><span>Δ 24h</span><span>${(t.chg>0?'+':'') + t.chg}%</span></div>
+      <div><span>Market cap</span><span>${t.mcap}</span></div>
+      <div><span>ATH</span><span>${t.ath}</span></div>
+      <div><span>Bajo ATH</span><span>${bajoAth}</span></div>
+      <div><span>ATH en X</span><span>${opp}</span></div>
+      <div><span style="color:var(--green)">Oportunidad Real en X</span><span style="color:var(--green)">${oppReal}</span></div>
+      <div><span>Score / Tier</span><span>${score} · ${tier}</span></div>
+    </div>
+    <div style="margin-top:8px;padding:8px 10px;background:rgba(52,211,153,.05);border:1px solid rgba(52,211,153,.18);border-radius:6px;font-size:11px;color:var(--text-dim)">
+      <strong style="color:var(--green)">Cómo se calcula "oportunidad real":</strong>
+      base por score (${score}/100 × 6 = ${((score/100)*6).toFixed(1)}×)
+      ${tier === 'EVITAR' ? ' × 0.30 (tier EVITAR)' : tier === 'ESPECULATIVO' ? ' × 0.60 (tier ESPECULATIVO)' : ''},
+      capeado al 80% del techo teórico.
+    </div>`;
+
+  // Stats de DefiLlama si hay
+  let llamaHtml;
+  if (ll) {
+    llamaHtml = `
+      <h5>Fees on-chain (DefiLlama)</h5>
+      <div class="stats">
+        <div><span>Fees 24h</span><span>${fmtUsdCompact(+ll.total24h)}</span></div>
+        <div><span>Fees 7d</span><span>${fmtUsdCompact(+ll.total7d)}</span></div>
+        <div><span>Fees 30d</span><span>${fmtUsdCompact(+ll.total30d)}</span></div>
+        <div><span>Fees 1y</span><span>${fmtUsdCompact(+ll.total1y)}</span></div>
+        <div><span>Δ 24h</span><span>${ll.change_1d != null ? (+ll.change_1d).toFixed(1)+'%' : '—'}</span></div>
+        <div><span>Δ 30d</span><span>${ll.change_1m != null ? (+ll.change_1m).toFixed(1)+'%' : '—'}</span></div>
+      </div>`;
+  } else if (!llamaCache.data) {
+    const msg = llamaCache.error
+      ? `DefiLlama no respondió (${llamaCache.error}). Reintenta en ~1 min.`
+      : `Datos de DefiLlama cargando — recarga el panel en unos segundos.`;
+    llamaHtml = `<h5>Fees on-chain (DefiLlama)</h5>
+      <div style="color:var(--text-muted);font-size:11px">${msg}</div>`;
+  } else if (!llamaSlug) {
+    llamaHtml = `<h5>Fees on-chain (DefiLlama)</h5>
+      <div style="color:var(--text-muted);font-size:11px">
+        ${t.tk} no es un protocolo DeFi con fees medibles (L1/infra/token nativo).
+        Los criterios 1-3 vienen del fallback manual del análisis.
+      </div>`;
+  } else {
+    llamaHtml = `<h5>Fees on-chain (DefiLlama)</h5>
+      <div style="color:var(--text-muted);font-size:11px">
+        Slug "${llamaSlug}" no encontrado en el dataset actual. Posible cambio de nombre en DefiLlama.
+      </div>`;
+  }
+
+  // Enlaces externos
+  const links = [];
+  if (cgId) links.push(`<a href="https://www.coingecko.com/en/coins/${cgId}" target="_blank" rel="noopener">CoinGecko ↗</a>`);
+  if (llamaSlug) links.push(`<a href="https://defillama.com/protocol/${llamaSlug}" target="_blank" rel="noopener">DefiLlama ↗</a>`);
+  links.push(`<a href="https://www.tradingview.com/symbols/${t.tk}USDT/" target="_blank" rel="noopener">TradingView ↗</a>`);
+
+  // Penalty por categoría (memecoins, dead chains, unknowns)
+  let categoryHtml = '';
+  let catMult = 1, catLabel = '';
+  if (t.cat === 'meme')    { catMult = 0.50; catLabel = 'memecoin — pura especulación, sin negocio'; }
+  else if (t.cat === 'legacy')  { catMult = 0.45; catLabel = 'legacy/dead chain — proyecto olvidado'; }
+  else if (t.cat === 'unknown') { catMult = 0.60; catLabel = 'no identificado — sin categoría productiva'; }
+  if (catMult < 1) {
+    const pct = ((1 - catMult) * 100).toFixed(0);
+    categoryHtml = `
+      <div style="margin-top:8px;padding:8px 10px;background:rgba(251,113,133,.05);border:1px solid rgba(251,113,133,.18);border-radius:6px;font-size:11px;color:var(--text-dim)">
+        <strong style="color:var(--red)">Penalty por categoría:</strong>
+        × ${catMult} (−${pct}%) — ${catLabel}
+      </div>`;
+  }
+
+  // Info del penalty por dilución (si aplica) — debe coincidir con computeScore()
+  let dilutionHtml = '';
+  if (t._circ && t._total) {
+    const ratio = t._circ / t._total;
+    let mult = 1, label = 'sin penalty (≥ 85% circulando)';
+    if (ratio < 0.50)      { mult = 0.65; label = `dilución severa (<50% circulando): −35%`; }
+    else if (ratio < 0.70) { mult = 0.80; label = `dilución pesada (50-70%): −20%`; }
+    else if (ratio < 0.85) { mult = 0.92; label = `dilución moderada (70-85%): −8%`; }
+    if (mult < 1) {
+      const raw = CRITERIA.reduce((a,c,i) => a + (t.crit[i] ? c.w : 0), 0);
+      const adj = Math.round(raw * mult);
+      dilutionHtml = `
+        <div style="margin-top:8px;padding:8px 10px;background:rgba(251,113,133,.05);border:1px solid rgba(251,113,133,.18);border-radius:6px;font-size:11px;color:var(--text-dim)">
+          <strong style="color:var(--red)">Penalty por dilución:</strong>
+          score crudo ${raw} × ${mult} = ${adj} (${label})
+        </div>`;
+    }
+  }
+
+  return `
+    <div class="detail">
+      ${archHtml}
+      <h5>Desglose del score (resultado = ${computeScore(t)})</h5>
+      <ul class="crit-list">${reasons}</ul>
+      ${categoryHtml}
+      ${dilutionHtml}
+      ${cgHtml}
+      ${llamaHtml}
+      <div class="links">${links.join('')}</div>
+    </div>
+  `;
+}
+
+// Delegado de retrocompatibilidad: devuelve el USD ya con "$"
+function fmtPrice(p) { return fmtUsd(p); }
+
+// === Portfolio ===
+function setMode(m) {
+  state.mode = m;
+  document.getElementById('res').classList.toggle('active', m==='res');
+  document.getElementById('bal').classList.toggle('active', m==='bal');
+  document.getElementById('agg').classList.toggle('active', m==='agg');
+  const desc = {
+    res: '65% en anclas (BTC 40 + ETH 25) y el resto en blue-chips de gran mcap (≥ $5B) con score ≥ 70. Para perfil que prioriza preservación de capital sobre asimetría — el ancla del set.',
+    bal: '27% de base en blue-chips (BTC + ETH) + 73% repartido entre los mejores TOP/SÓLIDO del universo (score ≥ 65, sin trampas ni unlocks). Pesos = score × log(1 + oportunidad real).',
+    agg: '100% en TOP/SÓLIDO con mcap < $5B (asimetría real). Filtra large-caps, trampas y tokens con unlocks pendientes. Pesos = score × log(1 + oportunidad real). Para perfil que aguanta -50%.',
+  };
+  document.getElementById('strategy').textContent = desc[m];
+  // El slider se cappea al tamaño real disponible (universo dinámico o curado)
+  const slider = document.getElementById('maxTok');
+  const realMax = universeState.loaded ? 20 : PORTFOLIOS[m].length;
+  slider.max = realMax;
+  if (+slider.value > realMax) slider.value = realMax;
+  renderPortfolio();
+}
+
+// Construye el portafolio dinámicamente desde el ranking en vivo.
+// - Reservado: 65% en anclas (BTC 40 + ETH 25) + 35% en blue-chips (mcap ≥ $5B, score ≥ 70)
+// - Balanceado: 27% en anclas (BTC 18 + ETH 9) + 73% en TOP/SÓLIDO del universo
+// - Agresivo: 100% en TOP/SÓLIDO, sin large-caps (mcap < $5B), ponderando por score × asimetría
+function buildDynamicPortfolio(mode, max) {
+  // Umbrales por modo
+  const minScore = mode === 'agg' ? 70 : (mode === 'res' ? 70 : 65);
+  let pool = TOKENS.filter(t => {
+    const sc = computeScore(t);
+    const tr = tierOf(t);
+    if (sc < minScore) return false;
+    if (tr === 'EVITAR') return false;
+    if (t.warn && /unlocks?/i.test(t.warn)) return false;          // skip "Dilución por unlocks pendientes"
+    return true;
+  });
+  // Filtros por mcap según modo
+  if (mode === 'agg') {
+    // Solo small/mid caps con asimetría real
+    pool = pool.filter(t => {
+      const m = parseAthString(t.mcap);
+      return !m || m < 5e9;
+    });
+  } else if (mode === 'res') {
+    // Solo blue chips de gran mcap
+    pool = pool.filter(t => {
+      const m = parseAthString(t.mcap);
+      return m && m >= 5e9;
+    });
+  }
+  // Ordenar:
+  // - Reservado: por mcap desc (los más establecidos primero) y luego score
+  // - Resto: score desc, luego oportunidad real desc
+  if (mode === 'res') {
+    pool.sort((a, b) => {
+      const ma = parseAthString(a.mcap) || 0;
+      const mb = parseAthString(b.mcap) || 0;
+      if (mb !== ma) return mb - ma;
+      return computeScore(b) - computeScore(a);
+    });
+  } else {
+    pool.sort((a, b) => {
+      const sd = computeScore(b) - computeScore(a);
+      if (sd !== 0) return sd;
+      const oa = parseFloat(fmtOportunidadReal(a)) || 0;
+      const ob = parseFloat(fmtOportunidadReal(b)) || 0;
+      return ob - oa;
+    });
+  }
+
+  // Reservar slots para anclas en balanceado/reservado
+  const anchors = (mode === 'bal' || mode === 'res') ? 2 : 0;
+  const slots = anchors > 0 ? Math.max(1, max - anchors) : max;
+  const picks = pool.slice(0, slots);
+  // Telemetría para el footer: si pool < slots, el slider está "topado" por
+  // falta de candidatos elegibles, no por capricho del usuario.
+  const poolMeta = { eligible: pool.length, requested: slots, minScore, anchors };
+
+  // Peso compuesto según modo
+  const items = picks.map(t => {
+    const sc = computeScore(t);
+    const cat = (CATEGORIES.find(c => c[0] === t.cat) || ['','—'])[1];
+    let weight, note;
+    if (mode === 'res') {
+      // Pesos suaves para que BTC/ETH dominen
+      weight = sc * 0.3;
+      note = `${cat} · score ${sc} · blue chip`;
+    } else {
+      const realOpp = parseFloat(fmtOportunidadReal(t)) || 1;
+      weight = sc * Math.log(1 + realOpp);
+      note = `${cat} · score ${sc} · ${fmtOportunidadReal(t)} real`;
+    }
+    return [t.tk, note, weight];
+  });
+
+  // Anclas: BTC y ETH proporcionales a la suma de los otros
+  if (mode === 'bal') {
+    const sumOther = items.reduce((a, r) => a + r[2], 0);
+    items.unshift(['ETH', 'Ancla L1 + capa RWA', sumOther * (9 / 73)]);
+    items.unshift(['BTC', 'Ancla / reserva de valor', sumOther * (18 / 73)]);
+  } else if (mode === 'res') {
+    const sumOther = items.reduce((a, r) => a + r[2], 0) || 1;
+    items.unshift(['ETH', 'Ancla L1 + capa RWA', sumOther * (25 / 35)]);
+    items.unshift(['BTC', 'Reserva de valor · ancla principal', sumOther * (40 / 35)]);
+  }
+
+  items._poolMeta = poolMeta;
+  return items;
+}
+
+function renderPortfolio() {
+  const max = parseInt(document.getElementById('maxTok').value, 10);
+  document.getElementById('maxTokVal').textContent = max;
+
+  // Si el universo ya cargó, armamos el portafolio dinámicamente; si no, usamos el fallback
+  const list = universeState.loaded
+    ? buildDynamicPortfolio(state.mode, max)
+    : PORTFOLIOS[state.mode].slice(0, max);
+
+  if (list.length === 0) {
+    document.getElementById('portfolioBox').innerHTML = `
+      <div style="text-align:center;color:var(--text-muted);padding:20px">
+        Sin tokens elegibles con el umbral actual. Espera a que termine el barrido del universo.
+      </div>`;
+    return;
+  }
+
+  const sum = list.reduce((a,[,,w]) => a + w, 0);
+  const scaled = list.map(([tk,note,w]) => [tk, note, (w/sum)*100]);
+  const maxPct = Math.max(...scaled.map(r => r[2]));
+
+  const html = scaled.map(([tk,note,pct]) => `
+    <div class="pf-row">
+      <div class="tk">${tk}</div>
+      <div>
+        <div class="note">${note}</div>
+        <div class="pf-bar"><div style="width:${(pct/maxPct*100).toFixed(0)}%"></div></div>
+      </div>
+      <div class="pct">${pct.toFixed(1)}%</div>
+    </div>
+  `).join('');
+
+  const sourceLabel = universeState.loaded
+    ? `Dinámico (${TOKENS.length} tokens)`
+    : `Curado (universo cargando)`;
+
+  // Aviso honesto: si el pool elegible es menor a lo que pide el slider,
+  // el slider quedó "topado" por falta de candidatos, no por bug.
+  let poolHint = '';
+  const meta = list._poolMeta;
+  if (meta && meta.eligible < meta.requested) {
+    const askedTotal = max;
+    const gotTotal = scaled.length;
+    poolHint = `
+      <div style="grid-column:1/-1;margin-top:10px;padding:10px 12px;border:1px dashed rgba(192,132,252,.28);border-radius:8px;color:var(--text-dim);font-size:12px;line-height:1.5">
+        <strong style="color:var(--violet-bright)">Pool agotado al umbral.</strong>
+        Pediste ${askedTotal} tokens; sólo <strong>${gotTotal}</strong> pasan la vara de score ≥ ${meta.minScore} en el modo actual.
+        Subir el slider más no agrega tokens — agregaría candidatos que el framework no considera dignos. Bajar el umbral sería suavizar la calidad para llenar el cupo.
+      </div>`;
+  }
+
+  document.getElementById('portfolioBox').innerHTML = html + `
+    <div class="pf-meta">
+      <span>Tokens: <strong>${scaled.length}${meta && meta.eligible < meta.requested ? ` / ${max} pedidos` : ''}</strong></span>
+      <span>Suma: <strong>${scaled.reduce((a,r)=>a+r[2],0).toFixed(1)}%</strong></span>
+      <span>Modo: <strong>${({res:'Reservado', bal:'Balanceado', agg:'Agresivo'})[state.mode]}</strong></span>
+      <span>Fuente: <strong>${sourceLabel}</strong></span>
+    </div>
+    ${poolHint}
+  `;
+}
+
+// === Clock + sync status ===
+function updateStatus() {
+  const tag = document.getElementById('liveTag');
+  const st = document.getElementById('syncStatus');
+  if (state.syncing) {
+    tag.textContent = 'SINCRONIZANDO';
+    tag.style.color = '#fbbf24';
+    return;
+  }
+  if (state.syncError) {
+    tag.textContent = 'SIN CONEXIÓN';
+    tag.style.color = '#fb7185';
+  } else if (state.lastSync) {
+    tag.textContent = 'DATOS EN VIVO';
+    tag.style.color = '';
+  }
+  const d = state.lastSync || new Date();
+  const hh = String(d.getHours()).padStart(2,'0');
+  const mm = String(d.getMinutes()).padStart(2,'0');
+  document.getElementById('now').textContent = `${hh}:${mm}`;
+}
+
+// Indicador del estado del universo (cuántos tokens y categorías cargaron)
+function updateUniverseStat() {
+  const el = document.getElementById('universeStat');
+  if (!el) return;
+  if (universeState.loading) {
+    el.textContent = `◐ Cargando universo… (${universeState.catsOk + universeState.catsErr}/${CG_CATEGORIES.length} categorías)`;
+    el.style.color = 'var(--gold)';
+    return;
+  }
+  if (universeState.error) {
+    const raw = String(universeState.error);
+    // Diagnóstico amigable según el tipo de fallo
+    let hint;
+    if (/Failed to fetch|NetworkError|Load failed/i.test(raw)) {
+      hint = 'red bloqueada (extensión / ad-blocker / file://) o sin internet';
+    } else if (/HTTP 429/.test(raw)) {
+      hint = 'CoinGecko rate-limit (Demo: 30 calls/min) — reintenta en 1 min';
+    } else if (/HTTP 5\d\d/.test(raw)) {
+      hint = 'CoinGecko caído transitoriamente';
+    } else {
+      hint = raw;
+    }
+    el.innerHTML = `✕ ${hint}. Mostrando curaduría (${TOKENS.length} tokens). <a href="#" onclick="event.preventDefault();retryUniverse()" style="color:var(--violet-bright);text-decoration:underline">Reintentar →</a>  <span style="color:var(--text-muted)">(auto-retry cada 60s)</span>`;
+    el.style.color = 'var(--red)';
+    return;
+  }
+  if (universeState.loaded) {
+    if (universeState.source === 'cache-stale') {
+      const ageMin = universeState.staleAgeMin ?? '?';
+      el.innerHTML = `◐ ${TOKENS.length} tokens · <b>último snapshot (hace ${ageMin} min)</b> — sin conexión. <a href="#" onclick="event.preventDefault();retryUniverse()" style="color:var(--violet-bright);text-decoration:underline">Reintentar →</a>`;
+      el.style.color = 'var(--gold)';
+      return;
+    }
+    const src = universeState.source === 'cache' ? 'cache 30 min' : 'top 250 mcap';
+    el.textContent = `● ${TOKENS.length} tokens evaluados · fuente: ${src} · refresco cada 60s`;
+    el.style.color = 'var(--green)';
+    return;
+  }
+  el.textContent = 'Inicializando…';
+}
+
+// === Formato de cifras grandes ===
+function fmtMcap(n) {
+  if (!n || !isFinite(n)) return '—';
+  if (n >= 1e12) return '$' + (n/1e12).toFixed(2) + 'T';
+  if (n >= 1e9)  return '$' + (n/1e9).toFixed(2)  + 'B';
+  if (n >= 1e6)  return '$' + (n/1e6).toFixed(0)  + 'M';
+  return '$' + n.toFixed(0);
+}
+// === Formateador único USD ===
+// Todos los precios (precio actual, ATH, lo que sea monetario) pasan por aquí.
+// Convención: dot decimal + coma miles. Siempre prefijo "$".
+function fmtUsd(n) {
+  if (!n || !isFinite(n) || n <= 0) return '—';
+  if (n >= 1000) return '$' + n.toLocaleString('en-US', {maximumFractionDigits:0});
+  if (n >= 1)    return '$' + n.toFixed(2);
+  if (n >= 0.01) return '$' + n.toFixed(4);
+  if (n >= 0.0001) return '$' + n.toFixed(5);
+  return '$' + n.toFixed(7);
+}
+// Aliases retrocompatibles
+const fmtAth = fmtUsd;
+
+// === "% bajo ATH" = cuánto debe subir el precio para reconquistar el ATH ===
+// Fórmula: ((ATH / price) - 1) * 100. Siempre en %, con separador de miles
+// para los valores grandes (la "× multiplicador" vive en la línea de oportunidad).
+function fmtBajoAth(price, ath) {
+  const p = Number(price), a = Number(ath);
+  if (!isFinite(p) || !isFinite(a) || a <= 0 || p <= 0) return '—';
+  if (p >= a) return '0%';                                   // precio ≥ ATH
+  const gainPct = (a / p - 1) * 100;                          // 86.6, 773, 2 707, 26 200…
+  if (gainPct >= 1000) return Math.round(gainPct).toLocaleString('en-US') + '%';
+  if (gainPct >= 100)  return gainPct.toFixed(0) + '%';      // 100–999% → "773%"
+  return gainPct.toFixed(1) + '%';                            // <100% → "86.6%"
+}
+
+// Oportunidad TEÓRICA = multiplicador puro al ATH (ATH / price).
+function fmtOportunidad(price, ath) {
+  const p = Number(price), a = Number(ath);
+  if (!isFinite(p) || !isFinite(a) || a <= 0 || p <= 0) return '—';
+  if (p >= a) return '1×';
+  const mult = a / p;
+  if (mult >= 100) return mult.toFixed(0) + '×';
+  if (mult >= 10)  return mult.toFixed(1) + '×';
+  return mult.toFixed(2) + '×';
+}
+
+// Oportunidad REAL para BTC/ETH (blue-chip reserva): haircut menor (15%) porque son
+// las menos riesgosas del set; el mercado las re-precia más confiablemente al ATH.
+function fmtOportunidadRealReserva(price, ath) {
+  const p = Number(price), a = Number(ath);
+  if (!isFinite(p) || !isFinite(a) || a <= 0 || p <= 0) return '—';
+  if (p >= a) return '1×';
+  const mult = (a / p) * 0.85;
+  return mult.toFixed(1) + '×';
+}
+
+// Oportunidad REAL = estimación realista del upside en ciclo siguiente.
+// Combina: (1) base por score, (2) penalización por tier de riesgo,
+//          (3) cap por techo teórico con haircut cíclico de 20%.
+// Modelo lineal calibrado para que tier "SÓLIDO" score ~74 dé ~4×.
+function fmtOportunidadReal(t) {
+  const score = computeScore(t);
+  const tier  = tierOf(t);
+  // (1) Base por score: linear 0-100 → 0-6×
+  let base = (score / 100) * 6;
+  // (2) Penalización por tier — captura el riesgo no modelado en el score
+  if (tier === 'EVITAR')        base *= 0.30;  // -70%
+  else if (tier === 'ESPECULATIVO') base *= 0.60;  // -40%
+  // (3) Cap por techo: no puede superar el 80% del upside teórico
+  const athRaw = t._athRaw || parseAthString(t.ath);
+  if (athRaw && t.price > 0) {
+    const theoretical = athRaw / t.price;
+    base = Math.min(base, theoretical * 0.8);
+  }
+  if (base < 0.1) return '<0.1×';
+  if (base >= 10) return base.toFixed(1) + '×';
+  return base.toFixed(1) + '×';
+}
+
+// Parsea un ATH que puede venir como string "$8.08", "$1.15B" o número
+function parseAthString(s) {
+  if (typeof s === 'number') return s;
+  if (typeof s !== 'string') return NaN;
+  const cleaned = s.replace(/[$,\s]/g, '');
+  const m = cleaned.match(/^([\d.]+)([KMBT]?)$/i);
+  if (!m) return NaN;
+  const n = parseFloat(m[1]);
+  const mult = { K:1e3, M:1e6, B:1e9, T:1e12 }[m[2].toUpperCase()] || 1;
+  return n * mult;
+}
+
+// === Fetch a DefiLlama (fees + crecimiento) ===
+let llamaCache = { data: null, ts: 0, error: null };
+async function fetchLlamaFees() {
+  // Cache 5 min para no golpear la API innecesariamente
+  if (llamaCache.data && Date.now() - llamaCache.ts < 5 * 60 * 1000) return llamaCache.data;
+  const url = 'https://api.llama.fi/overview/fees?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true';
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Llama HTTP ' + res.status);
+    const json = await res.json();
+    // Indexar por todas las claves plausibles para maximizar matching
+    const byKey = {};
+    const norm = s => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    (json.protocols || []).forEach(p => {
+      if (p.slug)     byKey[p.slug] = p;
+      if (p.module)   byKey[p.module] = p;
+      if (p.name)     byKey[norm(p.name)] = p;
+      if (p.displayName) byKey[norm(p.displayName)] = p;
+    });
+    llamaCache = { data: byKey, ts: Date.now(), error: null };
+    console.log(`DefiLlama: ${Object.keys(byKey).length} claves indexadas (${(json.protocols||[]).length} protocolos)`);
+    return byKey;
+  } catch (e) {
+    llamaCache.error = e.message;
+    console.warn('DefiLlama fetch falló:', e);
+    return null;
+  }
+}
+
+// Lookup robusto: prueba slug exacto y normalizado
+function findLlama(tk) {
+  if (!llamaCache.data) return null;
+  const slug = LLAMA_IDS[tk];
+  if (!slug) return null;
+  const norm = s => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  return llamaCache.data[slug]
+      || llamaCache.data[norm(slug)]
+      || llamaCache.data[norm(tk)]
+      || null;
+}
+
+// === CoinGecko API key (Demo plan: 30 calls/min) ===
+// Si está vacía → usa el plan público anónimo (5-15 calls/min, propenso a 429).
+// La key se lee de localStorage para no exponerla en el repo público.
+// Para configurarla en tu navegador, abre la consola (F12) y ejecuta:
+//   localStorage.setItem('cgApiKey', 'CG-TU-API-KEY-AQUI')
+// Después recarga la página. Queda persistente en ese navegador.
+const CG_API_KEY = (typeof localStorage !== 'undefined' && localStorage.getItem('cgApiKey')) || '';
+
+// Wrapper: agrega el header Demo a cualquier llamada a api.coingecko.com.
+async function cgFetch(url, opts = {}) {
+  const headers = { ...(opts.headers || {}) };
+  if (CG_API_KEY && url.includes('api.coingecko.com')) {
+    headers['x-cg-demo-api-key'] = CG_API_KEY;
+  }
+  return fetch(url, { ...opts, headers });
+}
+
+// === Fetch universal: UNA sola llamada al top 250 por mcap (ahorra rate-limit) ===
+const UNIVERSE_CACHE_KEY = 'outliners:universe:v3';   // v3: nueva categorización
+const UNIVERSE_TTL_MS = 30 * 60 * 1000;   // 30 min
+
+let universeState = {
+  loaded: false,
+  loading: false,
+  totalTokens: 0,
+  error: null,
+  source: 'init',
+};
+
+// === Whitelist explícita de tokens conocidos del top 250 ===
+// Categorizar correctamente es CRÍTICO: si PEPE cae a "l1" (narrativa hot),
+// pasa todos los criterios y aparece como TOP. Mejor mapearlos a mano.
+const TOKEN_CATEGORIES = {
+  // === Layer 1 / Smart Contract Platforms ===
+  ETH:'l1', SOL:'l1', AVAX:'l1', NEAR:'l1', SUI:'l1', APT:'l1', SEI:'l1',
+  TON:'l1', DOT:'l1', ATOM:'l1', S:'l1', TRX:'l1', BNB:'l1', ALGO:'l1',
+  XTZ:'l1', EGLD:'l1', FTM:'l1', ICP:'l1', KAS:'l1', RUNE:'l1', INJ:'l1',
+  KAVA:'l1', FLOW:'l1', VET:'l1', CRO:'l1', LEO:'l1', QTUM:'l1', WAVES:'l1',
+  XDC:'l1', MINA:'l1', ZIL:'l1', ONE:'l1', ROSE:'l1', CELO:'l1', AR:'data',
+  // L2s
+  ARB:'l1', OP:'l1', MNT:'l1', STRK:'l1', MATIC:'l1', POL:'l1', METIS:'l1', ZK:'l1',
+  // === IA / AI ===
+  TAO:'ia', FET:'ia', AGIX:'ia', OCEAN:'ia', VIRTUAL:'ia', AI16Z:'ia',
+  AIXBT:'ia', GOAT:'ia', RNDR:'gpu', RENDER:'gpu', NMR:'ia', WLD:'id',
+  // === GPU / Compute ===
+  AKT:'gpu', ATH:'gpu', IO:'gpu', NOS:'gpu',
+  // === DePIN ===
+  HNT:'depin', IOTX:'depin', PEAQ:'depin', LPT:'depin',
+  // === Data / Storage ===
+  FIL:'data', GRASS:'data', GRT:'data', THETA:'data', STORJ:'data', AR:'data',
+  // === RWA / Oracles ===
+  ONDO:'rwa', LINK:'rwa', PYTH:'rwa', SKY:'rwa', ENA:'rwa', SYRUP:'rwa',
+  USDS:'rwa', BAND:'rwa', OM:'rwa',
+  // === DeFi ===
+  AAVE:'defi', UNI:'defi', LDO:'defi', PENDLE:'defi', MORPHO:'defi', JUP:'defi',
+  DYDX:'defi', GMX:'defi', CRV:'defi', SUSHI:'defi', CAKE:'defi', SNX:'defi',
+  COMP:'defi', MKR:'defi', BAL:'defi', YFI:'defi', '1INCH':'defi', RAY:'defi',
+  RUNE:'defi', GMT:'defi',
+  // === Identity ===
+  ENS:'id', H:'id',
+  // === Privacy ===
+  XMR:'priv', ZEC:'priv', DCR:'priv', SCRT:'priv',
+  // === Payments / Legacy financial ===
+  XRP:'pagos', XLM:'pagos', HBAR:'pagos', XPL:'pagos', LTC:'pagos', BCH:'pagos',
+  // === Memecoins (categoría especial — score penalizado) ===
+  PEPE:'meme', SHIB:'meme', DOGE:'meme', FLOKI:'meme', BONK:'meme',
+  WIF:'meme', BRETT:'meme', POPCAT:'meme', PNUT:'meme', MOG:'meme',
+  FARTCOIN:'meme', TRUMP:'meme', MELANIA:'meme', BABYDOGE:'meme',
+  SPX:'meme', NEIRO:'meme', GIGA:'meme', MEW:'meme', PONKE:'meme',
+  SLERF:'meme', BOME:'meme', WEN:'meme', MOODENG:'meme', CHILLGUY:'meme',
+  ACT:'meme', GOAT:'meme', PEPECOIN:'meme', TURBO:'meme', AIDOGE:'meme',
+  // === Dead chains / proyectos olvidados (penalizados duro) ===
+  LUNC:'legacy', USTC:'legacy', LUNA:'legacy', CELR:'legacy',
+  // Stablecoins YIELD (se filtran arriba como excluidos en su mayoría, pero por si)
+};
+
+// Categoriza un coin de CoinGecko. Estrategia: overlay curado > whitelist > heurística > unknown
+function guessCategoryFromCG(c) {
+  const tk = c.symbol.toUpperCase();
+  // 1. Overlay curado (TOKENS hand-picked)
+  if (CURATED_BY_TK[tk]?.cat) return CURATED_BY_TK[tk].cat;
+  // 2. Whitelist explícita
+  if (TOKEN_CATEGORIES[tk]) return TOKEN_CATEGORIES[tk];
+  // 3. Heurística por nombre/símbolo
+  const blob = ((c.name||'') + ' ' + (c.symbol||'')).toLowerCase();
+  // Memecoins por keywords obvias
+  if (/\b(meme|inu|cat|dog|frog|moon|safe|pepe|elon|trump|baby|cute|magic|wojak|chad|wif)\b/.test(blob)) return 'meme';
+  // Dead chains
+  if (/\bclassic\b/.test(blob)) return 'legacy';
+  // Productivas
+  if (/\b(ai|agent|tao|fet|render|grass|bittensor)\b/.test(blob)) return 'ia';
+  if (/\b(depin|helium|peaq|iotex|mapper)\b/.test(blob))         return 'depin';
+  if (/\b(rwa|tokeniz|treasur|ondo|maple|securitize)\b/.test(blob)) return 'rwa';
+  if (/\b(privacy|monero|zcash|midnight|namada)\b/.test(blob))    return 'priv';
+  if (/\b(pay|stellar|ripple|hedera|plasma)\b/.test(blob))         return 'pagos';
+  if (/\b(identity|world|ens|humanity|civic)\b/.test(blob))       return 'id';
+  if (/\b(gpu|cuda|akash|aethir|ionet|nosana)\b/.test(blob))      return 'gpu';
+  if (/\b(storage|filecoin|arweave|sia)\b/.test(blob))            return 'data';
+  // Default: unknown (NO está en HOT_NARRATIVES — castigo justo por no encajar)
+  return 'unknown';
+}
+
+async function fetchUniverse() {
+  if (universeState.loading) return null;
+  universeState.loading = true;
+  updateUniverseStat();
+
+  // 1. Intentar cargar de localStorage primero
+  try {
+    const cached = JSON.parse(localStorage.getItem(UNIVERSE_CACHE_KEY) || 'null');
+    if (cached && cached.ts && Date.now() - cached.ts < UNIVERSE_TTL_MS && Array.isArray(cached.list)) {
+      console.log(`Universo: cargado de cache (${cached.list.length} tokens, edad ${Math.round((Date.now()-cached.ts)/1000)}s)`);
+      const tickerToCat = {};
+      cached.list.forEach(c => { tickerToCat[c.symbol.toUpperCase()] = guessCategoryFromCG(c); });
+      universeState.loaded = true; universeState.loading = false;
+      universeState.totalTokens = cached.list.length;
+      universeState.source = 'cache';
+      return { list: cached.list, tickerToCat };
+    }
+  } catch (e) { /* cache corrupta — la ignoramos */ }
+
+  // 2. Sin cache → UNA sola llamada al top 250 (no 19 categorías)
+  try {
+    const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false&price_change_percentage=24h`;
+    const res = await cgFetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const arr = await res.json();
+    if (!Array.isArray(arr)) throw new Error('respuesta inesperada');
+
+    const list = arr.filter(c => c && c.symbol && c.id && !isExcluded(c.symbol.toUpperCase()));
+    const tickerToCat = {};
+    list.forEach(c => { tickerToCat[c.symbol.toUpperCase()] = guessCategoryFromCG(c); });
+
+    // Guardar en cache para reloads
+    try {
+      localStorage.setItem(UNIVERSE_CACHE_KEY, JSON.stringify({ ts: Date.now(), list }));
+    } catch (e) { /* localStorage lleno o desactivado — sigue */ }
+
+    universeState.loaded = true; universeState.loading = false;
+    universeState.totalTokens = list.length;
+    universeState.source = 'api';
+    universeState.error = null;
+    console.log(`Universo: ${list.length} tokens del top 250 mcap (API fresh)`);
+    return { list, tickerToCat };
+  } catch (e) {
+    // Fallback final: si la API falla, usar el cache aunque haya expirado el TTL.
+    // Stale data > seed curado de 43 tokens. El usuario sigue viendo el último
+    // snapshot real que el portal alcanzó a capturar, no valores REF estáticos.
+    try {
+      const cached = JSON.parse(localStorage.getItem(UNIVERSE_CACHE_KEY) || 'null');
+      if (cached && Array.isArray(cached.list) && cached.list.length) {
+        const ageMin = Math.round((Date.now() - (cached.ts || 0)) / 60000);
+        const tickerToCat = {};
+        cached.list.forEach(c => { tickerToCat[c.symbol.toUpperCase()] = guessCategoryFromCG(c); });
+        universeState.loaded = true; universeState.loading = false;
+        universeState.totalTokens = cached.list.length;
+        universeState.source = 'cache-stale';
+        universeState.staleAgeMin = ageMin;
+        universeState.error = null;     // no marcar error: tenemos datos, aunque viejos
+        console.warn(`Universo: API falló (${e.message}). Usando cache stale (${cached.list.length} tokens, ${ageMin} min).`);
+        return { list: cached.list, tickerToCat };
+      }
+    } catch (_) { /* cache inutilizable — caemos al error abajo */ }
+    universeState.loading = false;
+    universeState.error = e.message;
+    console.error('Universo falló y no hay cache:', e);
+    return null;
+  }
+}
+
+// Construye un objeto token a partir del payload de CoinGecko + cat local + overlay curado
+function buildTokenFromCG(c, localCat) {
+  const tk = c.symbol.toUpperCase();
+  const overlay = CURATED_BY_TK[tk];
+  return {
+    tk,
+    name: c.name || tk,
+    cat:  overlay?.cat || localCat || 'l1',
+    price: c.current_price ?? 0,
+    chg:   c.price_change_percentage_24h != null ? +c.price_change_percentage_24h.toFixed(1) : 0,
+    mcap:  c.market_cap ? fmtMcap(c.market_cap) : '—',
+    ath:   c.ath ? fmtUsd(c.ath) : '—',
+    _athRaw: c.ath || null,
+    _volume24h: c.total_volume || 0,
+    _circ: c.circulating_supply || 0,
+    _total: c.total_supply || c.max_supply || 0,
+    _cgId: c.id,
+    bajo: '—',
+    crit: overlay?.crit ? overlay.crit.slice() : [0,0,0,0,0,0,0,0],
+    analysis: overlay?.analysis || `Token de categoría <a href="#">${(CATEGORIES.find(x=>x[0]===(overlay?.cat || localCat || 'l1'))||['','—'])[1]}</a>. Evaluado automáticamente desde CoinGecko + DefiLlama.`,
+    tierOverride: overlay?.tierOverride,
+    warn: overlay?.warn,
+    _sourceLive: true,
+  };
+}
+
+// === Recalcular crit[] desde datos reales ===
+// Devuelve array de 8 con la lógica nueva; respeta criterios "subjetivos" (narrativa, demanda)
+// del fallback original.
+// === ARQUETIPOS de tokens ===
+// Cada uno necesita métricas distintas: penalizar un L1 por no tener fees DeFi
+// es como evaluar una autopista por su revenue de peaje sin contar el tráfico.
+// Storage chains: SON blockchains L1 (no apps encima de un chain), pero su modelo
+// de ingresos es el endowment / pagos por almacenamiento, no fees de protocolo DeFi.
+// DefiLlama no captura esto → caerían a 'infra' y el techo SÓLIDO los castigaría
+// injustamente. Los promovemos a 'l1' para que reciban el trato de chain.
+const STORAGE_CHAINS = new Set(['AR', 'FIL']);
+
+// Compute / DePIN networks: SÍ tienen archetype 'defi' (DefiLlama responde) pero
+// facturan distinto que un DEX — burn-and-mint por trabajos GPU / pagos por nodo,
+// no gas fees agregados. El threshold de $1M/30d (DEX-calibrated) los descarta sin
+// razón. Para esta whitelist explícita usamos $500k/30d. Sigue exigiendo PRUEBA
+// on-chain (DefiLlama debe devolver número real), pero con la vara correcta del
+// sector. Si DefiLlama devuelve 0 o null → no se acredita, igual que siempre.
+const COMPUTE_NETWORKS = new Set(['RENDER', 'RNDR', 'AKT', 'ATH', 'IO', 'HNT']);
+
+function detectArchetype(t, llama) {
+  if (STORAGE_CHAINS.has(t.tk)) return 'l1';         // storage chain = L1 de almacenamiento
+  if (llama) return 'defi';                          // protocolo en DefiLlama = DeFi
+  if (t.cat === 'l1') return 'l1';                   // Layer 1 / Smart Contract Platform
+  if (HOT_NARRATIVES.has(t.cat)) return 'infra';     // IA, GPU, DePIN, RWA, data, id
+  return 'legacy';                                    // pagos, privacidad o sin narrativa
+}
+
+function computeCritFromData(t, cg, llama) {
+  const crit = t.crit.slice();
+  const T = THRESHOLDS;
+  const arch = detectArchetype(t, llama);
+  const mcap = cg && cg.market_cap;
+  t._archetype = arch;                                // se usa en buildAnalysisDetail
+  // Limpiamos el rent continuo cada ciclo: solo lo seteamos en la rama defi.
+  // Para L1/infra/legacy, computeScore vuelve al binario crit[3].
+  delete t._rentFrac;
+  delete t._rentAnnualPct;
+  delete t._flujoThreshold;
+
+  // [0] OFERTA SIN DILUCIÓN — universal
+  if (cg && cg.circulating_supply && cg.total_supply) {
+    const ratio = (cg.circulating_supply / cg.total_supply) * 100;
+    crit[0] = ratio >= T.ofertaCircPct ? 1 : 0;
+  }
+
+  // [1] USO REAL — cambia según arquetipo
+  // [2] CRECIMIENTO
+  // [3] RENTABILIDAD ESTRUCTURAL
+  if (arch === 'defi') {
+    // DeFi: fees reales de DefiLlama
+    const fees30d = +llama.total30d || 0;
+    // Threshold sector-específico: compute networks (RENDER, AKT, etc.) facturan
+    // burn-and-mint, no gas DEX. Vara $500k en vez de $1M, y solo si DefiLlama
+    // devuelve un número > 0 (no regalamos el punto).
+    const isCompute = COMPUTE_NETWORKS.has(t.tk);
+    const flujoThreshold = isCompute ? 500_000 : T.flujoMin30dUsd;
+    t._flujoThreshold = flujoThreshold;               // para tooltip
+    crit[1] = fees30d >= flujoThreshold ? 1 : 0;
+    const change1m = +llama.change_1m;
+    // Piso absoluto de fees para acreditar crecimiento: Δ% sin base no es señal.
+    // Un protocolo con $19K facturando +278% no demuestra captura, demuestra ruido.
+    // Exigimos fees30d ≥ $250K además del Δ ≥ 10% para marcar crit[2].
+    if (!isNaN(change1m)) crit[2] = (change1m >= T.crecimientoPct && fees30d >= 250_000) ? 1 : 0;
+    if (mcap && fees30d > 0) {
+      const annualPct = (fees30d * 12 / mcap) * 100;
+      // CONTINUO: threshold = score completo. Por debajo, fracción lineal.
+      // Por encima, capeado a 1 (winsorización implícita — evita que un token de
+      // mcap diminuto con fees relativamente grandes infle el score sin sentido).
+      const frac = Math.max(0, Math.min(1, annualPct / T.rentableAnualPct));
+      t._rentFrac = frac;
+      t._rentAnnualPct = annualPct;        // para tooltip / análisis detallado
+      // Compatibilidad con UI binaria: marca ✓ si está al menos a mitad de camino.
+      crit[3] = frac >= 0.5 ? 1 : 0;
+    } else {
+      t._rentFrac = 0;
+      crit[3] = 0;
+    }
+  } else if (arch === 'l1' && mcap) {
+    // L1: el negocio es el ecosistema. Sin slug DefiLlama del CHAIN, no podemos
+    // medir captura de valor real al token.
+    //
+    // BUG HISTÓRICO 1 (cerrado): regalar crit[2]/crit[3] por mcap<$3B/$5B inflaba
+    // mid-caps castigados (DOT, POL) sin crecimiento real.
+    //
+    // BUG HISTÓRICO 2 (cerrado acá): la versión "micro-cap + turnover" todavía
+    // regalaba 25 pts a micro-caps con narrativa (AR=100, S=100 en top 3) por
+    // proxy de "chico + activo". Eso no es ni crecimiento ni rentabilidad —
+    // es la versión micro-cap del mismo bug. Y "mcap chico" ya se mide en crit[7]
+    // (asimetría), turnover en crit[6] (demanda externa). Estábamos contando lo
+    // mismo tres veces.
+    //
+    // REGLA HONESTA: sin fees medibles del chain, crit[2] y crit[3] = 0. Techo
+    // natural SÓLIDO, igual que infra. Sin excepción para STORAGE_CHAINS — su
+    // tesis de endowment/pagos por storage es promesa estructural, no flujo
+    // demostrable al holder hoy. Sus fortalezas reales (oferta, ATH, asimetría,
+    // narrativa) ya se acreditan en crit[0]/[5]/[6]/[7].
+    const vol = cg.total_volume || t._volume24h || 0;
+    const turnover = vol > 0 ? (vol / mcap) * 100 : 0;
+    // [1] Uso real: turnover ≥ 5% diario
+    crit[1] = turnover >= 5 ? 1 : 0;
+    // [2] Crecimiento: sin data de fees del chain, no afirmamos crecimiento → 0
+    // [3] Rentabilidad estructural: sin fees medibles, no afirmamos rent → 0
+  } else if (arch === 'infra' && mcap) {
+    // Infra no-L1 en narrativa hot (IA, GPU, DePIN, RWA, data, id).
+    //
+    // PRINCIPIO: sin DefiLlama no podemos VERIFICAR captura de valor real.
+    // Solo damos crédito al turnover (es algo medible: el token se usa para algo),
+    // pero NO regalamos crecimiento ni rentabilidad solo por ser "mid-cap en hype".
+    // Eso era el bug que inflaba FET: 25 puntos por promesa, no por prueba.
+
+    // [1] Uso real: turnover ≥ 5% (threshold subido de 3% → 5% para infra sin DefiLlama)
+    const vol = cg.total_volume || t._volume24h || 0;
+    if (vol > 0) {
+      const turnoverPct = (vol / mcap) * 100;
+      crit[1] = turnoverPct >= 5 ? 1 : 0;
+    }
+    // [2] Crecimiento: sin Δ_1m de DefiLlama, no podemos afirmar crecimiento → falla
+    // [3] Rentabilidad estructural: sin fees medibles, no podemos calcular rentabilidad → falla
+    //
+    // Resultado: techo natural en SÓLIDO para infra sin captura demostrable.
+    // TOP queda reservado para DeFi con fees reales o L1s con asimetría asumida.
+  }
+  // arch === 'legacy' → criterios 1/2/3 quedan en 0 (penalización justa)
+
+  // [4] NARRATIVA CORRECTA — universal
+  // La categoría debe estar caliente Y el token específico no estar en la lista
+  // de "narrativa muerta" (categoría hot pero nicho específico abandonado).
+  if (t.cat) {
+    crit[4] = (HOT_NARRATIVES.has(t.cat) && !DEAD_NARRATIVES.has(t.tk)) ? 1 : 0;
+  }
+
+  // [5] DESCUENTO vs ATH — universal
+  if (cg && cg.ath_change_percentage != null) {
+    crit[5] = Math.abs(cg.ath_change_percentage) >= T.descuentoAthPct ? 1 : 0;
+  }
+
+  // [6] DEMANDA EXTERNA — turnover diario universal
+  const vol6 = (cg && cg.total_volume) || t._volume24h || 0;
+  if (mcap && vol6) {
+    const volPct = (vol6 / mcap) * 100;
+    crit[6] = volPct >= T.demandaVolMcapPct ? 1 : 0;
+  }
+
+  // [7] ASIMETRÍA RESTANTE — escalonada por tamaño y descuento.
+  // Rangos ampliados: $3B no es mega-cap en cripto hoy (BTC>$1T, ETH cientos de B).
+  // Un proyecto de $5B con descuento real tiene 5×-10× viable si el ciclo acompaña.
+  // La versión vieja era demasiado estricta y dejaba fuera a SUI/AVAX/NEAR a pesar
+  // de ser asimetrías estructurales reales.
+  if (mcap && cg && cg.ath_change_percentage != null) {
+    const bajo = Math.abs(cg.ath_change_percentage);
+    const m = mcap;
+    crit[7] = (
+      (m < 500e6  && bajo >= 70) ||   // micro castigada: 10×+ posible
+      (m < 2e9    && bajo >= 75) ||   // small castigada: 5×-10× viable (era <1.5B & ≥80%)
+      (m < 5e9    && bajo >= 80)      // mid castigada: 3×-5× viable (era <3B & ≥85%)
+    ) ? 1 : 0;
+  }
+
+  return crit;
+}
+
+// === Snippet enriquecido con data en vivo, debajo del análisis ===
+// Devuelve un mini-resumen "Fortaleza / Debilidad" basado en los criterios actuales y
+// las métricas reales (fees, Δ_1m, oportunidad real). Aplica a todos los tokens.
+function buildLiveTakeaway(t) {
+  const score   = computeScore(t);
+  const metCount = (t.crit || []).reduce((a,b) => a+b, 0);
+  const tier    = tierOf(t);
+  const ll      = findLlama(t.tk);
+
+  // Fortaleza: criterio cumplido con MAYOR peso
+  let strongest = null;
+  CRITERIA.forEach((c, i) => {
+    if (t.crit[i] && (!strongest || c.w > strongest.w)) strongest = { ...c, i };
+  });
+  // Debilidad: criterio no cumplido con MAYOR peso (el que más le pega al score)
+  let weakest = null;
+  CRITERIA.forEach((c, i) => {
+    if (!t.crit[i] && (!weakest || c.w > weakest.w)) weakest = { ...c, i };
+  });
+
+  // Métricas concretas
+  const bits = [];
+  if (ll && ll.total30d) bits.push(`fees 30d ${ll.total30d >= 1e6 ? '$' + (+ll.total30d/1e6).toFixed(1) + 'M' : '$' + Math.round(+ll.total30d/1e3) + 'K'}`);
+  if (ll && ll.change_1m != null) bits.push(`Δ fees 1m ${(+ll.change_1m).toFixed(0)}%`);
+  if (t._circ && t._total) bits.push(`circ ${((t._circ/t._total)*100).toFixed(0)}%`);
+  const oppReal = fmtOportunidadReal(t);
+
+  const tierColor = ({ TOP:'var(--violet-bright)', 'SÓLIDO':'var(--cyan)', ESPECULATIVO:'var(--gold)', EVITAR:'var(--red)' })[tier] || 'var(--text-dim)';
+
+  return `
+    <div class="takeaway">
+      <div class="tk-row">
+        <span class="tk-pill" style="color:${tierColor};border-color:${tierColor}">${tier} · score ${score}</span>
+        <span class="tk-meta">${metCount}/8 criterios · ${oppReal} real</span>
+      </div>
+      ${strongest ? `<div class="tk-line"><span class="tk-good">●</span> Fortaleza: <b>${strongest.label.toLowerCase()}</b></div>` : ''}
+      ${weakest   ? `<div class="tk-line"><span class="tk-bad">●</span> Debilidad: <b>${weakest.label.toLowerCase()}</b></div>` : ''}
+      ${bits.length ? `<div class="tk-bits">${bits.join(' · ')}</div>` : ''}
+    </div>`;
+}
+
+// === Trampas de valor dinámicas (detectadas desde data en vivo) ===
+// Estado global de trampas detectadas — accesible desde openTrap() para el popup.
+// Cada token aparece taggeado con _trapType y datos calculados de la categoría
+// que lo capturó. Se reconstruye en cada renderTraps() (cada 60s vía fetchLive).
+const TRAPS_STATE = { dilution: [], noCapture: [], coolHype: [], timing: [] };
+
+function renderTraps() {
+  const box = document.getElementById('trapsBox');
+  if (!box) return;
+
+  const mcapOf = t => parseAthString(t.mcap) || 0;
+  const top = (arr, n) => arr.slice().sort((a,b) => mcapOf(b) - mcapOf(a)).slice(0, n);
+
+  // 1. DILUCIÓN MORTAL: circulante/total < 60% → mucho supply por venir.
+  //    Excluye BTC/ETH (van a Reserva) y stablecoins (ya excluidos en el universo).
+  const dilution = top(TOKENS.filter(t => {
+    if (!t._circ || !t._total) return false;
+    const ratio = t._circ / t._total;
+    return ratio < 0.60 && ratio > 0;
+  }).map(t => {
+    const circPct = (t._circ / t._total) * 100;
+    return Object.assign({}, t, {
+      _trapType: 'dilution',
+      _circPct: circPct,
+      _trapMsg: `Solo ${circPct.toFixed(0)}% en circulación — el ${(100 - circPct).toFixed(0)}% restante diluirá precio cuando se libere.`
+    });
+  }), 4);
+
+  // 2. CAPTURA DE VALOR NULA: fees anualizados/mcap < 0.5% (con fees ≥ $250K).
+  //    Piso de fees: por debajo es ruido, no "trampa" (un protocolo con $19K
+  //    no atrae capital y no merece estar acá — sería falso positivo).
+  const noCapture = top(TOKENS.filter(t => {
+    const ll = findLlama(t.tk);
+    if (!ll) return false;
+    const m = mcapOf(t);
+    const fees30d = +ll.total30d || 0;
+    if (m === 0 || fees30d < 250_000) return false;
+    const annualPct = (fees30d * 12 / m) * 100;
+    return annualPct < 0.5;
+  }).map(t => {
+    const ll = findLlama(t.tk);
+    const m = mcapOf(t);
+    const fees30d = +ll.total30d || 0;
+    const annualPct = (fees30d * 12 / m) * 100;
+    return Object.assign({}, t, {
+      _trapType: 'noCapture',
+      _capturePct: annualPct,
+      _fees30d: fees30d,
+      _mcapRaw: m,
+      _trapMsg: `Factura $${(fees30d/1e6).toFixed(2)}M en 30d pero el token captura solo ${annualPct.toFixed(2)}% anual de su mcap. El mercado paga relato, no negocio.`
+    });
+  }), 4);
+
+  // 3. HYPE ENFRIADO: % bajo ATH > 70% AND Δ_1m fees < -25%.
+  //    Era una narrativa caliente con fees; ahora fees cayendo Y precio destruido.
+  const coolHype = top(TOKENS.filter(t => {
+    const ll = findLlama(t.tk);
+    if (!ll || ll.change_1m == null) return false;
+    const athRaw = t._athRaw || parseAthString(t.ath);
+    if (!athRaw || !t.price) return false;
+    const bajoPct = (1 - t.price/athRaw) * 100;
+    const delta1m = +ll.change_1m;
+    return bajoPct > 70 && delta1m < -25;
+  }).map(t => {
+    const ll = findLlama(t.tk);
+    const athRaw = t._athRaw || parseAthString(t.ath);
+    const bajoPct = (1 - t.price/athRaw) * 100;
+    const delta1m = +ll.change_1m;
+    return Object.assign({}, t, {
+      _trapType: 'coolHype',
+      _delta1m: delta1m,
+      _bajoPct: bajoPct,
+      _fees30d: +ll.total30d || 0,
+      _trapMsg: `Fees mensuales cayendo ${delta1m.toFixed(0)}% y precio ${bajoPct.toFixed(0)}% bajo ATH — narrativa perdiendo tracción real.`
+    });
+  }), 4);
+
+  // 4. TRAMPA DE TIMING: < 25% bajo ATH (precio cerca o sobre ATH = sin asimetría).
+  const timing = top(TOKENS.filter(t => {
+    const athRaw = t._athRaw || parseAthString(t.ath);
+    if (!athRaw || !t.price) return false;
+    const bajoPct = (1 - t.price/athRaw) * 100;
+    return bajoPct < 25 && bajoPct >= -10;     // tolera ligeramente sobre ATH
+  }).map(t => {
+    const athRaw = t._athRaw || parseAthString(t.ath);
+    const bajoPct = (1 - t.price/athRaw) * 100;
+    return Object.assign({}, t, {
+      _trapType: 'timing',
+      _bajoPct: bajoPct,
+      _athRawCached: athRaw,
+      _trapMsg: bajoPct < 0
+        ? `${Math.abs(bajoPct).toFixed(0)}% SOBRE ATH — comprar acá es asumir nuevo descubrimiento de precio sin retroceso.`
+        : `Solo ${bajoPct.toFixed(0)}% bajo ATH — el descuento desapareció. Comprar acá es comprar el techo.`
+    });
+  }), 4);
+
+  // Actualizar estado global para que el popup encuentre los datos enriquecidos
+  TRAPS_STATE.dilution = dilution;
+  TRAPS_STATE.noCapture = noCapture;
+  TRAPS_STATE.coolHype = coolHype;
+  TRAPS_STATE.timing = timing;
+
+  const row = t => `<div class="trap-row"><div class="trap-tag" onclick="openTrap('${t.tk}','${t._trapType}')" title="Click para ver argumento completo">${t.tk}</div><div>${t._trapMsg}</div></div>`;
+
+  const section = (title, icon, list, emptyMsg) => `
+    <div class="trap">
+      <h4>${icon} ${title}</h4>
+      ${list.length === 0
+        ? `<div class="trap-row" style="grid-template-columns:1fr"><div style="color:var(--text-muted);font-size:12px">${emptyMsg}</div></div>`
+        : list.map(row).join('')
+      }
+    </div>`;
+
+  box.innerHTML = (
+    section('Dilución mortal',     '⚠', dilution, 'Sin trampas activas en este criterio') +
+    section('Captura de valor nula','⚠', noCapture, 'Sin tokens con captura crítica detectados') +
+    section('Hype enfriado',       '⚠', coolHype, 'Sin narrativas enfriándose violentamente') +
+    section('Trampa de timing',    '⚠', timing,   'Sin tokens demasiado cerca del ATH')
+  );
+}
+
+// === Popup de argumento de trampa ===
+// Construye análisis rico para una trampa específica desde TRAPS_STATE.
+// Cada trampa tiene su propia narrativa: qué es, por qué importa, qué señal
+// concreta la dispara, y qué hacer.
+function buildTrapDetail(t, trapType) {
+  const fmtUsd = v => (v == null || !isFinite(v) || v <= 0) ? '—'
+    : v >= 1e9 ? '$' + (v/1e9).toFixed(2) + 'B'
+    : v >= 1e6 ? '$' + (v/1e6).toFixed(2) + 'M'
+    : v >= 1e3 ? '$' + (v/1e3).toFixed(1) + 'K'
+    : '$' + v.toFixed(0);
+
+  const fmtPrice = v => v == null ? '—' : v >= 1 ? '$' + v.toFixed(2) : '$' + v.toFixed(4);
+
+  const mcapRaw = parseAthString(t.mcap) || 0;
+  const vol24h = t._volume24h || 0;
+
+  const headerCommon = `
+    <h3>⚠ ${t.tk} <span style="color:var(--text-muted);font-weight:400;font-size:14px">— ${t.name || ''}</span></h3>
+    <div class="tm-sub">${
+      trapType === 'dilution'  ? 'Trampa de dilución estructural' :
+      trapType === 'noCapture' ? 'Trampa de captura de valor nula' :
+      trapType === 'coolHype'  ? 'Trampa de hype enfriado' :
+      'Trampa de timing'
+    }</div>`;
+
+  if (trapType === 'dilution') {
+    const circPct = t._circPct;
+    const restPct = 100 - circPct;
+    const totalSupply = t._total || 0;
+    const circSupply = t._circ || 0;
+    const restSupply = totalSupply - circSupply;
+    const restValueUsd = restSupply * (t.price || 0);
+    const daysToAbsorb = vol24h > 0 ? (restValueUsd / vol24h) : null;
+
+    return headerCommon + `
+      <div class="tm-stats">
+        <div class="tm-stat"><div class="lbl">Circulante</div><div class="val">${circPct.toFixed(1)}%</div></div>
+        <div class="tm-stat"><div class="lbl">Por liberar</div><div class="val">${restPct.toFixed(1)}%</div></div>
+        <div class="tm-stat"><div class="lbl">Supply futuro (USD)</div><div class="val">${fmtUsd(restValueUsd)}</div></div>
+        <div class="tm-stat"><div class="lbl">Mcap actual</div><div class="val">${fmtUsd(mcapRaw)}</div></div>
+      </div>
+      <h4>Por qué es una trampa</h4>
+      <p>El precio que ves cotiza sobre <strong>${circPct.toFixed(0)}%</strong> del supply. El restante <strong>${restPct.toFixed(0)}%</strong> (${fmtUsd(restValueUsd)} a precio de hoy) entrará al mercado en los próximos meses/años vía unlocks de equipo, inversores, fundación y emisiones programadas.</p>
+      <p>Para que el precio no caiga durante los unlocks, la demanda nueva tendría que absorber <strong>${fmtUsd(restValueUsd)}</strong> de oferta sin reducir el precio. ${
+        daysToAbsorb
+          ? `Al volumen actual de ${fmtUsd(vol24h)}/día, eso equivale a <strong>${daysToAbsorb.toFixed(0)} días de volumen entero</strong> dedicado solo a absorber los unlocks.`
+          : 'Sin volumen suficiente para estimar absorción.'
+      }</p>
+      <h4>El error mental</h4>
+      <p>"Es barato vs ATH" es la trampa: el ATH se hizo con <strong>menos supply circulando</strong>. Con más supply, ese mismo ATH requiere más capital nuevo. La asimetría que crees ver no existe — está siendo consumida por la dilución programada.</p>
+      <h4>Cuándo dejaría de ser trampa</h4>
+      <p>Si el proyecto demostrara <strong>captura de valor real</strong> (fees al token, buyback activo medible en DefiLlama) que crezca más rápido que el supply que se libera. Sin eso, el reloj juega en contra del holder.</p>`;
+  }
+
+  if (trapType === 'noCapture') {
+    const annualPct = t._capturePct;
+    const fees30d = t._fees30d;
+    const feesAnnual = fees30d * 12;
+    const benchmarkPct = 5;     // rentabilidad "sana" en el framework
+    return headerCommon + `
+      <div class="tm-stats">
+        <div class="tm-stat"><div class="lbl">Fees 30d</div><div class="val">${fmtUsd(fees30d)}</div></div>
+        <div class="tm-stat"><div class="lbl">Fees anualizados</div><div class="val">${fmtUsd(feesAnnual)}</div></div>
+        <div class="tm-stat"><div class="lbl">Mcap</div><div class="val">${fmtUsd(mcapRaw)}</div></div>
+        <div class="tm-stat"><div class="lbl">Captura anual</div><div class="val" style="color:var(--red)">${annualPct.toFixed(2)}%</div></div>
+      </div>
+      <h4>Por qué es una trampa</h4>
+      <p>El protocolo <strong>sí factura</strong> (${fmtUsd(fees30d)} en 30 días). Pero esos fees <strong>no llegan al holder del token</strong> de forma medible. Solo el <strong>${annualPct.toFixed(2)}%</strong> anual del mcap se convierte en captura para el token — vs el ${benchmarkPct}% que pediría el framework para considerarlo rentable.</p>
+      <h4>Por qué pasa</h4>
+      <p>Los fees típicamente van a LPs, validadores, treasury sin política de buyback, o se queman en cantidades irrelevantes. El token funciona como <strong>cupón de gobernanza sin derecho económico</strong>: representa "voto" sobre el protocolo, pero no participación en sus utilidades.</p>
+      <h4>El error mental</h4>
+      <p>"Si los fees suben, el token sube" — falso. El token solo sube si los fees <strong>llegan al token</strong>. Sin mecanismo de captura (fee switch activado, buyback público, burn proporcional a revenue), un protocolo puede facturar 10× más sin mover el precio del token.</p>
+      <h4>Cuándo dejaría de ser trampa</h4>
+      <p>Cuando active un fee switch real, anuncie buyback con números públicos (como AAVE, JUP), o el burn estructural supere las emisiones. Hasta entonces, comprarlo es comprar exposición a la <em>narrativa</em>, no al <em>negocio</em>.</p>`;
+  }
+
+  if (trapType === 'coolHype') {
+    const delta1m = t._delta1m;
+    const bajoPct = t._bajoPct;
+    const fees30d = t._fees30d;
+    return headerCommon + `
+      <div class="tm-stats">
+        <div class="tm-stat"><div class="lbl">Δ fees 1 mes</div><div class="val" style="color:var(--red)">${delta1m.toFixed(0)}%</div></div>
+        <div class="tm-stat"><div class="lbl">Fees 30d actuales</div><div class="val">${fmtUsd(fees30d)}</div></div>
+        <div class="tm-stat"><div class="lbl">% bajo ATH</div><div class="val">${bajoPct.toFixed(0)}%</div></div>
+        <div class="tm-stat"><div class="lbl">Precio</div><div class="val">${fmtPrice(t.price)}</div></div>
+      </div>
+      <h4>Por qué es una trampa</h4>
+      <p>El precio cayó <strong>${bajoPct.toFixed(0)}%</strong> desde ATH y eso hace creer que está "barato". Pero los fees del protocolo <strong>también están cayendo (${delta1m.toFixed(0)}% en un mes)</strong>. No es un descuento — es revaluación a la baja con razón fundamental.</p>
+      <h4>El patrón</h4>
+      <p>Narrativa caliente atrae usuarios → fees suben → precio sube. Cuando la narrativa migra a otra cosa (otro chain, otro caso de uso, otro hype), los usuarios se van → fees caen → el holder se queda con un token al que ya nadie usa. <strong>La caída de fees precede a la próxima pierna de precio a la baja, no la confirma a la suba.</strong></p>
+      <h4>El error mental</h4>
+      <p>"Cayó 80% desde ATH, ya está agotado el downside" — falso si los fees siguen contrayéndose. El piso lo pone la actividad real, no el precio histórico. Mientras Δ fees siga negativo, no hay piso fundamental.</p>
+      <h4>Cuándo dejaría de ser trampa</h4>
+      <p>Cuando Δ fees vuelva a positivo durante al menos dos meses seguidos, idealmente con catalizador identificable (nueva versión del protocolo, partnership operativo, no solo anuncio). Sin reversión de la curva de fees, comprar es atrapar cuchillo.</p>`;
+  }
+
+  if (trapType === 'timing') {
+    const bajoPct = t._bajoPct;
+    const ath = t._athRawCached;
+    return headerCommon + `
+      <div class="tm-stats">
+        <div class="tm-stat"><div class="lbl">% bajo ATH</div><div class="val" style="color:${bajoPct < 0 ? 'var(--red)' : 'var(--gold)'}">${bajoPct < 0 ? '+' + Math.abs(bajoPct).toFixed(0) + '% sobre ATH' : bajoPct.toFixed(0) + '%'}</div></div>
+        <div class="tm-stat"><div class="lbl">Precio actual</div><div class="val">${fmtPrice(t.price)}</div></div>
+        <div class="tm-stat"><div class="lbl">ATH</div><div class="val">${fmtPrice(ath)}</div></div>
+        <div class="tm-stat"><div class="lbl">Mcap</div><div class="val">${fmtUsd(mcapRaw)}</div></div>
+      </div>
+      <h4>Por qué es una trampa</h4>
+      <p>${bajoPct < 0
+        ? `El precio está <strong>sobre el ATH histórico</strong>. Comprar acá no es buscar subvaluación — es asumir que el mercado va a pagar precios nunca antes vistos sin retroceso.`
+        : `Está apenas <strong>${bajoPct.toFixed(0)}% bajo ATH</strong>. El descuento que justifica una apuesta asimétrica ya no existe.`
+      }</p>
+      <h4>La matemática del techo</h4>
+      <p>Para que esta posición dé un 3× desde acá, el precio tendría que llegar a <strong>${fmtPrice((t.price || 0) * 3)}</strong> — equivalente a un <strong>${(((t.price || 0) * 3 / ath - 1) * 100).toFixed(0)}%</strong> sobre el ATH actual. La asimetría real (mucho upside, downside limitado) requiere comprar cuando el precio está al menos 70% bajo ATH. Acá la asimetría está invertida: mucho downside, poco upside.</p>
+      <h4>El error mental</h4>
+      <p>"Está rompiendo máximos, va a seguir subiendo" — sesgo de momentum. El portal busca subvaluación, no chase de breakouts. Si quieres jugar momentum, esta no es la herramienta correcta; los criterios del scoring están diseñados para premiar entrada barata, no validación de tendencia.</p>
+      <h4>Cuándo dejaría de ser trampa</h4>
+      <p>Tras una corrección de al menos 50-70% que destruya el sesgo de "máximos" y deje el precio en zona de asimetría real. Comprar antes de eso es pagar por la confianza del mercado, no por descuento.</p>`;
+  }
+
+  return headerCommon + '<p>Sin detalle disponible.</p>';
+}
+
+function openTrap(tk, trapType) {
+  const list = TRAPS_STATE[trapType] || [];
+  const t = list.find(x => x.tk === tk);
+  if (!t) return;
+  const modal = document.getElementById('trapModal');
+  const backdrop = document.getElementById('trapModalBackdrop');
+  if (!modal || !backdrop) return;
+  modal.innerHTML = `<button class="tm-close" onclick="closeTrapModal()" aria-label="Cerrar">×</button>` + buildTrapDetail(t, trapType);
+  backdrop.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeTrapModal() {
+  const backdrop = document.getElementById('trapModalBackdrop');
+  if (!backdrop) return;
+  backdrop.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Cerrar con tecla Escape
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeTrapModal();
+});
+
+// === Macro global: Dominancia BTC en vivo (cache 5 min) ===
+let globalCache = { data: null, ts: 0 };
+async function fetchGlobal() {
+  if (globalCache.data && Date.now() - globalCache.ts < 5 * 60 * 1000) {
+    applyGlobal(globalCache.data);
+    return;
+  }
+  try {
+    const res = await cgFetch('https://api.coingecko.com/api/v3/global', { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    globalCache = { data: json.data, ts: Date.now() };
+    applyGlobal(json.data);
+  } catch (e) { console.warn('Global fetch falló:', e); }
+}
+function applyGlobal(d) {
+  if (!d) return;
+  const btcDom = d.market_cap_percentage?.btc;
+  if (btcDom != null) {
+    const el = document.querySelector('[data-metric="btcDom"]');
+    if (el) el.textContent = `~${btcDom.toFixed(1)}%`;
+    const foot = document.querySelector('[data-metric="btcDomFoot"]');
+    if (foot) {
+      foot.textContent = btcDom >= 55 ? 'Bitcoin season' : btcDom >= 45 ? 'Equilibrio' : 'Altseason';
+    }
+  }
+}
+
+// === Cache persistente de Reserva (BTC/ETH) ===
+// Key separada del universo porque BTC/ETH están en isExcluded y no entran al
+// snapshot del universo. Sin esto, al perder red las tarjetas caían a los valores
+// hardcoded del HTML (viejos por meses).
+const RESERVE_CACHE_KEY = 'outliners:reserve:v1';
+
+function saveReserveCache(byId) {
+  try {
+    const payload = { ts: Date.now(), data: byId };
+    localStorage.setItem(RESERVE_CACHE_KEY, JSON.stringify(payload));
+  } catch (_) { /* localStorage lleno o desactivado */ }
+}
+
+function loadReserveCache() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(RESERVE_CACHE_KEY) || 'null');
+    if (cached && cached.data && typeof cached.data === 'object') return cached;
+  } catch (_) {}
+  return null;
+}
+
+function applyReserveData(byId, sourceLabel) {
+  document.querySelectorAll('[data-reserve]').forEach(card => {
+    try {
+      const tk = card.getAttribute('data-reserve');
+      const c = byId[CG_IDS[tk]];
+      if (!c) return;
+      const set = (f, v) => { const el = card.querySelector(`[data-field="${f}"]`); if (el && v != null) el.textContent = v; };
+      if (c.current_price != null) set('price', fmtUsd(c.current_price));
+      if (c.price_change_percentage_24h != null) {
+        const chg = +(+c.price_change_percentage_24h).toFixed(1);
+        const chgEl = card.querySelector('[data-field="chg"]');
+        if (chgEl) {
+          chgEl.textContent = (chg>0?'+':'') + chg + '%';
+          chgEl.className = 'change ' + (chg>=0?'up':'down');
+        }
+      }
+      if (c.market_cap) set('mcap', fmtMcap(c.market_cap));
+      if (c.ath) set('ath', fmtUsd(c.ath));
+      if (c.current_price != null && c.ath) {
+        set('bajo', fmtBajoAth(c.current_price, c.ath) + ' bajo ATH');
+        set('opp',     fmtOportunidad(c.current_price, c.ath));
+        set('oppReal', fmtOportunidadRealReserva(c.current_price, c.ath));
+      }
+      console.log(`Reserva ${tk} actualizada (${sourceLabel}): $${c.current_price}`);
+    } catch (e) {
+      console.warn('Update aislado de reserva falló:', e);
+    }
+  });
+}
+
+// === Actualización dedicada y AISLADA para tarjetas de reserva (BTC/ETH) ===
+// Independiente de cualquier otro flujo. Se llama al init y cada 60s.
+// Si la API falla, cae al cache persistente (la tarjeta NO se queda con los
+// valores hardcoded del HTML — esos son del momento en que se escribió el archivo).
+async function fetchReservesNow() {
+  // 1. Pintar inmediatamente desde cache si existe (mientras esperamos la API)
+  //    Evita el "flash" del valor hardcoded al recargar offline.
+  const cached = loadReserveCache();
+  if (cached) {
+    const ageMin = Math.round((Date.now() - cached.ts) / 60000);
+    applyReserveData(cached.data, `cache ${ageMin} min`);
+  }
+
+  // 2. Intentar refrescar desde la API
+  try {
+    const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,ethereum&per_page=2&page=1&sparkline=false&price_change_percentage=24h`;
+    const res = await cgFetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const byId = {};
+    data.forEach(c => { byId[c.id] = c; });
+    applyReserveData(byId, 'live');
+    saveReserveCache(byId);
+  } catch (e) {
+    if (!cached) console.error('fetchReservesNow falló y no hay cache:', e);
+    else console.warn('fetchReservesNow falló — manteniendo cache:', e.message);
+  }
+}
+
+// === Carga de universo en segundo plano (no bloquea precios) ===
+function retryUniverse() {
+  universeState.error = null;
+  universeState.loaded = false;
+  universeState.loading = false;
+  updateUniverseStat();
+  loadUniverseBackground();
+}
+
+async function loadUniverseBackground() {
+  if (universeState.loaded || universeState.loading) return;
+  updateUniverseStat();
+  const universe = await fetchUniverse();
+  if (universe && universe.list.length) {
+    const built = universe.list.map(c => buildTokenFromCG(c, universe.tickerToCat[c.symbol.toUpperCase()]));
+    const haveTk = new Set(built.map(t => t.tk));
+    CURATED_TOKENS.forEach(t => {
+      if (!haveTk.has(t.tk)) built.push({ ...t, crit: t.crit.slice() });
+    });
+    TOKENS = built;
+
+    // CRÍTICO: recomputar criterios YA con la misma data del universo, sin esperar
+    // al próximo ciclo de fetchLive. Si no, los tokens recién agregados quedan con
+    // score 0/8 y aparecen como EVITAR.
+    const byId = {};
+    universe.list.forEach(c => { byId[c.id] = c; });
+    TOKENS.forEach(t => {
+      const c = t._cgId ? byId[t._cgId] : null;
+      const ll = findLlama(t.tk);
+      if (c || ll) {
+        t.crit = computeCritFromData(t, c, ll);
+        t._sourceLive = true;
+        if (c && c.market_cap && t.tierOverride !== 'EVITAR') delete t.tierOverride;
+      }
+    });
+    document.querySelectorAll('[data-reserve]').forEach(card => {
+      try {
+        const tk = card.getAttribute('data-reserve');
+        const c = byId[CG_IDS[tk]];
+        if (!c) return;
+        const set = (f, v) => { const el = card.querySelector(`[data-field="${f}"]`); if (el && v != null) el.textContent = v; };
+        if (c.current_price != null) set('price', fmtUsd(c.current_price));
+        if (c.price_change_percentage_24h != null) {
+          const chg = +(+c.price_change_percentage_24h).toFixed(1);
+          const chgEl = card.querySelector('[data-field="chg"]');
+          if (chgEl) {
+            chgEl.textContent = (chg>0?'+':'') + chg + '%';
+            chgEl.className = 'change ' + (chg>=0?'up':'down');
+          }
+        }
+        if (c.market_cap) set('mcap', fmtMcap(c.market_cap));
+        if (c.ath) set('ath', fmtUsd(c.ath));
+        if (c.current_price != null && c.ath) {
+          set('bajo', fmtBajoAth(c.current_price, c.ath) + ' bajo ATH');
+          set('opp',     fmtOportunidad(c.current_price, c.ath));
+          set('oppReal', fmtOportunidadRealReserva(c.current_price, c.ath));
+        }
+      } catch (e) { console.warn('Reserva desde universo falló:', e); }
+    });
+  }
+  updateUniverseStat();
+  renderFilters();
+  const slider = document.getElementById('maxTok');
+  if (slider) slider.max = 20;
+  renderPortfolio();
+  renderTokens();   // refresca ranking con la data del universo
+  renderTraps();    // detecta trampas con el nuevo universo
+}
+
+// === Fetch a CoinGecko (precios + criterios) ===
+async function fetchLive(manual=false) {
+  if (state.syncing) return;
+  state.syncing = true;
+  updateStatus();
+  if (manual) {
+    document.getElementById('refreshBtn').textContent = '↻ Actualizando…';
+  }
+
+  try {
+    // Disparar carga de universo en background (no bloquea el resto del fetch)
+    if (!universeState.loaded && !universeState.loading) {
+      loadUniverseBackground();   // fire-and-forget; actualizará TOKENS cuando termine
+    }
+
+    // UNA sola llamada al top 250 por mcap. Cubre BTC/ETH y prácticamente todos
+    // los tokens del universo, sin tener que armar query strings gigantes con ids.
+    // Si CoinGecko rate-limita (429), usamos el snapshot del universo cacheado.
+    const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false&price_change_percentage=24h`;
+    let byId = {};
+    let usedCache = false;
+    try {
+      const res = await cgFetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      data.forEach(c => { byId[c.id] = c; });
+      console.log(`fetchLive: ${data.length} tokens del top 250 actualizados`);
+      // Persistir BTC/ETH al cache de Reserva (vienen acá porque son top mcap,
+      // aunque están excluidos del UNIVERSE_CACHE_KEY).
+      const reserveById = {};
+      if (byId['bitcoin'])  reserveById['bitcoin']  = byId['bitcoin'];
+      if (byId['ethereum']) reserveById['ethereum'] = byId['ethereum'];
+      if (Object.keys(reserveById).length) saveReserveCache(reserveById);
+    } catch (e) {
+      // Fallback: usar la cache del universo (precios pueden estar hasta 30 min viejos).
+      // El universo NO contiene BTC/ETH (excluidos en isExcluded), así que también
+      // recuperamos esos dos desde el cache de Reserva — si no, las tarjetas de
+      // arriba quedan con valores hardcoded del HTML.
+      try {
+        const cached = JSON.parse(localStorage.getItem(UNIVERSE_CACHE_KEY) || 'null');
+        if (cached && Array.isArray(cached.list)) {
+          cached.list.forEach(c => { byId[c.id] = c; });
+          usedCache = true;
+          console.warn(`fetchLive: markets falló (${e.message}). Usando cache del universo (${cached.list.length} tokens, edad ${Math.round((Date.now()-cached.ts)/1000)}s).`);
+        } else {
+          throw e;
+        }
+        // Inyectar BTC/ETH desde su cache propio para que la sección Reserva
+        // también muestre el último snapshot real.
+        const rc = loadReserveCache();
+        if (rc && rc.data) {
+          if (rc.data['bitcoin'])  byId['bitcoin']  = rc.data['bitcoin'];
+          if (rc.data['ethereum']) byId['ethereum'] = rc.data['ethereum'];
+        }
+      } catch (e2) {
+        throw new Error(`markets falló y no hay cache: ${e.message}`);
+      }
+    }
+
+    // DefiLlama en paralelo (con fallback silencioso)
+    let llamaBySlug = {};
+    try { llamaBySlug = await fetchLlamaFees(); } catch (e) { console.warn('Llama no disponible:', e); }
+
+    // Mergear en TOKENS + recomputar criterios
+    TOKENS.forEach(t => {
+      const id = t._cgId || CG_IDS[t.tk];
+      const c = id ? byId[id] : null;
+      if (c) {
+        if (c.current_price != null) t.price = c.current_price;
+        if (c.price_change_percentage_24h != null) t.chg = +c.price_change_percentage_24h.toFixed(1);
+        if (c.market_cap) t.mcap = fmtMcap(c.market_cap);
+        if (c.ath) { t.ath = fmtAth(c.ath); t._athRaw = c.ath; }
+        if (c.total_volume) t._volume24h = c.total_volume;
+        if (c.circulating_supply) t._circ = c.circulating_supply;
+        if (c.total_supply || c.max_supply) t._total = c.total_supply || c.max_supply;
+        // % bajo ATH calculado desde el precio y ATH reales (coherente con lo mostrado)
+        if (c.current_price != null && c.ath) {
+          t.bajo = fmtBajoAth(c.current_price, c.ath);
+        }
+      }
+      // Recomputar criterios desde datos reales (si tenemos al menos CG)
+      const ll = findLlama(t.tk);
+      if (c || ll) {
+        t.crit = computeCritFromData(t, c, ll);
+        t._sourceLive = true;          // marca de "criterios calculados"
+        // Tier dejará de venir forzado: la fórmula manda — EXCEPTO si la
+        // curaduría marcó EVITAR. Ese override es un backstop editorial: la
+        // analista detectó "narrativa muerta" (THETA video, ICP, etc.) y la
+        // fórmula objetiva no puede ver eso sin data de momentum/atención.
+        if ((ll || (c && c.market_cap)) && t.tierOverride !== 'EVITAR') {
+          delete t.tierOverride;
+        }
+      }
+    });
+
+    // Actualizar tarjetas de reserva (BTC/ETH) — defensivo: si CG devuelve null
+    // en algún campo o un fetch falló, sigue actualizando los que sí llegaron.
+    document.querySelectorAll('[data-reserve]').forEach(card => {
+      try {
+        const tk = card.getAttribute('data-reserve');
+        const c = byId[CG_IDS[tk]];
+        if (!c) {
+          console.warn(`Reserva ${tk}: no llegó data de CoinGecko en este ciclo`);
+          return;
+        }
+        const set = (f, v) => { const el = card.querySelector(`[data-field="${f}"]`); if (el && v != null) el.textContent = v; };
+        if (c.current_price != null) set('price', fmtUsd(c.current_price));
+        if (c.price_change_percentage_24h != null) {
+          const chg = +(+c.price_change_percentage_24h).toFixed(1);
+          const chgEl = card.querySelector('[data-field="chg"]');
+          if (chgEl) {
+            chgEl.textContent = (chg>0?'+':'') + chg + '%';
+            chgEl.className = 'change ' + (chg>=0?'up':'down');
+          }
+        }
+        if (c.market_cap) set('mcap', fmtMcap(c.market_cap));
+        if (c.ath) set('ath', fmtUsd(c.ath));
+        if (c.current_price != null && c.ath) {
+          set('bajo', fmtBajoAth(c.current_price, c.ath) + ' bajo ATH');
+          set('opp',     fmtOportunidad(c.current_price, c.ath));
+          set('oppReal', fmtOportunidadRealReserva(c.current_price, c.ath));
+        }
+      } catch (e) {
+        console.warn('Falló update de tarjeta reserva:', e);
+      }
+    });
+
+    state.lastSync = new Date();
+    state.syncError = false;
+    renderTokens();
+    renderPortfolio();          // re-rank picks con los nuevos scores
+    renderTraps();               // re-detecta trampas con la data nueva
+  } catch (err) {
+    console.error('CoinGecko fetch fallido:', err);
+    state.syncError = true;
+  } finally {
+    state.syncing = false;
+    if (manual) document.getElementById('refreshBtn').textContent = '↻ Actualizar';
+    updateStatus();
+  }
+}
+
+// === Init ===
+renderFilters();
+renderTokens();
+renderPortfolio();
+updateStatus();
+updateUniverseStat();
+fetchReservesNow();                       // BTC/ETH al instante (1 llamada chica)
+fetchGlobal();                            // dominancia BTC (cache 5 min)
+fetchLive();                              // primera carga: top 250 + universo si toca
+setInterval(fetchLive,    60_000);        // refresco general cada 60 s (incluye BTC/ETH)
+setInterval(fetchGlobal, 300_000);        // dominancia cada 5 min
+setInterval(updateStatus, 30_000);        // reloj al día
+</script>
+</body>
+</html>
