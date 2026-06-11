@@ -1483,8 +1483,11 @@ function computeScoreBreakdown(t) {
   const CAL_IDX = [0, 1, 2, 3];
   const OPP_IDX = [4, 5, 6, 7];
   const valOf = (i) => {
-    // Rent (índice 3) puede ser CONTINUO si DefiLlama dio fees reales.
+    // Criterios continuos: rent (3) y oportunidad escalonada (5,6,7).
     if (i === 3 && typeof t._rentFrac === 'number') return CRITERIA[i].w * t._rentFrac;
+    if (i === 5 && typeof t._oppFrac5 === 'number') return CRITERIA[i].w * t._oppFrac5;
+    if (i === 6 && typeof t._oppFrac6 === 'number') return CRITERIA[i].w * t._oppFrac6;
+    if (i === 7 && typeof t._oppFrac7 === 'number') return CRITERIA[i].w * t._oppFrac7;
     return t.crit[i] ? CRITERIA[i].w : 0;
   };
   const calidad     = CAL_IDX.reduce((s, i) => s + valOf(i), 0);
@@ -1526,11 +1529,15 @@ function computeScore(t) {
   // el peso completo (13), el segundo la mitad. Para el resto de criterios y arquetipos
   // sin DefiLlama, seguimos en binario (más conservador, evita inflar por estimaciones).
   CRITERIA.forEach((c, i) => {
-    if (i === 3 && typeof t._rentFrac === 'number') {
-      raw += c.w * t._rentFrac;
-    } else if (t.crit[i]) {
-      raw += c.w;
-    }
+    // Criterios CONTINUOS: rent (3) y los 3 de oportunidad escalonados (5,6,7).
+    // Cada uno guarda su fracción [0,1] en t._rentFrac / t._oppFracN, calculada
+    // en computeCritFromData. Esto evita el "Oportunidad 49/49 universal" y crea
+    // diferenciación real dentro del pilar de oportunidad.
+    if      (i === 3 && typeof t._rentFrac === 'number') raw += c.w * t._rentFrac;
+    else if (i === 5 && typeof t._oppFrac5 === 'number') raw += c.w * t._oppFrac5;
+    else if (i === 6 && typeof t._oppFrac6 === 'number') raw += c.w * t._oppFrac6;
+    else if (i === 7 && typeof t._oppFrac7 === 'number') raw += c.w * t._oppFrac7;
+    else if (t.crit[i]) raw += c.w;
   });
 
   // Penalty multiplicativo por dilución (basado en circulating/total supply).
@@ -2785,31 +2792,60 @@ function computeCritFromData(t, cg, llama) {
     crit[4] = (HOT_NARRATIVES.has(t.cat) && !DEAD_NARRATIVES.has(t.tk)) ? 1 : 0;
   }
 
-  // [5] DESCUENTO vs ATH — universal
+  // Limpiar fracs de oportunidad cada ciclo (se reasignan abajo si aplica)
+  delete t._oppFrac5; delete t._oppFrac6; delete t._oppFrac7;
+
+  // [5] DESCUENTO vs ATH — ESCALONADO (antes binario @70%).
+  // Razón del cambio: el ranking ya filtra por subvaluación, así que el binario @70%
+  // se cumplía en casi todos y "Oportunidad" salía 49/49 universal. Ahora distingue:
+  //   ≥85% bajo → 13 pts (descuento extremo, asimetría real)
+  //   70-85%   → 9 pts (buen descuento)
+  //   50-70%   → 5 pts (descuento parcial, fortaleza modesta)
+  //   <50%     → 0
   if (cg && cg.ath_change_percentage != null) {
-    crit[5] = Math.abs(cg.ath_change_percentage) >= T.descuentoAthPct ? 1 : 0;
+    const bajo = Math.abs(cg.ath_change_percentage);
+    let frac;
+    if      (bajo >= 85) frac = 1;
+    else if (bajo >= 70) frac = 9 / 13;
+    else if (bajo >= 50) frac = 5 / 13;
+    else                 frac = 0;
+    t._oppFrac5 = frac;
+    crit[5] = frac >= 0.5 ? 1 : 0;     // UI binaria: ✓ si pesa al menos la mitad
   }
 
-  // [6] DEMANDA EXTERNA — turnover diario universal
+  // [6] DEMANDA EXTERNA — ESCALONADO (antes binario @3% turnover).
+  //   ≥7% turnover → 12 pts (liquidez fuerte)
+  //   3-7%        → 8 pts
+  //   1.5-3%     → 4 pts
+  //   <1.5%       → 0
   const vol6 = (cg && cg.total_volume) || t._volume24h || 0;
   if (mcap && vol6) {
     const volPct = (vol6 / mcap) * 100;
-    crit[6] = volPct >= T.demandaVolMcapPct ? 1 : 0;
+    let frac;
+    if      (volPct >= 7)   frac = 1;
+    else if (volPct >= 3)   frac = 8 / 12;
+    else if (volPct >= 1.5) frac = 4 / 12;
+    else                    frac = 0;
+    t._oppFrac6 = frac;
+    crit[6] = frac >= 0.5 ? 1 : 0;
   }
 
-  // [7] ASIMETRÍA RESTANTE — escalonada por tamaño y descuento.
-  // Rangos ampliados: $3B no es mega-cap en cripto hoy (BTC>$1T, ETH cientos de B).
-  // Un proyecto de $5B con descuento real tiene 5×-10× viable si el ciclo acompaña.
-  // La versión vieja era demasiado estricta y dejaba fuera a SUI/AVAX/NEAR a pesar
-  // de ser asimetrías estructurales reales.
+  // [7] ASIMETRÍA RESTANTE — ESCALONADO con umbrales más exigentes que la versión
+  // binaria anterior. La anterior daba 1 hasta $5B con bajo≥80% — demasiado generoso,
+  // mid-caps con descuento normal calificaban como "asimétricos".
+  //   micro <$500M & bajo≥80% → 12 pts (asimetría 10×+ real)
+  //   small <$2B   & bajo≥85% → 8 pts
+  //   mid   <$5B   & bajo≥90% → 4 pts
+  //   resto                    → 0
   if (mcap && cg && cg.ath_change_percentage != null) {
     const bajo = Math.abs(cg.ath_change_percentage);
     const m = mcap;
-    crit[7] = (
-      (m < 500e6  && bajo >= 70) ||   // micro castigada: 10×+ posible
-      (m < 2e9    && bajo >= 75) ||   // small castigada: 5×-10× viable (era <1.5B & ≥80%)
-      (m < 5e9    && bajo >= 80)      // mid castigada: 3×-5× viable (era <3B & ≥85%)
-    ) ? 1 : 0;
+    let frac = 0;
+    if      (m < 500e6 && bajo >= 80) frac = 1;
+    else if (m < 2e9   && bajo >= 85) frac = 8 / 12;
+    else if (m < 5e9   && bajo >= 90) frac = 4 / 12;
+    t._oppFrac7 = frac;
+    crit[7] = frac >= 0.5 ? 1 : 0;
   }
 
   return crit;
