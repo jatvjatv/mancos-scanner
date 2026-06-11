@@ -493,6 +493,12 @@
   .sb-label { color: var(--text-muted); font-size: 10px; letter-spacing: .5px; text-transform: uppercase; }
   .sb-value { color: var(--text); font-weight: 700; font-size: 14px; margin-top: 2px; }
   .sb-value.risk { color: var(--red); }
+  .sb-value.risk-clean {
+    color: var(--text-muted);
+    font-weight: 500;
+    font-size: 12px;
+    letter-spacing: .3px;
+  }
   .sb-bar {
     height: 3px; border-radius: 2px;
     background: rgba(255,255,255,.06);
@@ -1837,17 +1843,17 @@ function renderTokens() {
         <div class="score-breakdown" title="Desglose del score: cuánto viene de fundamentos (Calidad), cuánto de descuento/asimetría (Oportunidad), y cuánto resta el riesgo estructural (dilución + categoría).">
           <div class="sb-item">
             <div class="sb-label">Calidad</div>
-            <div class="sb-value">${bd.calidad}/${bd.calMax}</div>
+            <div class="sb-value" title="Sobre ${bd.calMax}">${bd.calidad}</div>
             <div class="sb-bar"><span class="cal" style="width:${calPct}%"></span></div>
           </div>
           <div class="sb-item">
             <div class="sb-label">Oportunidad</div>
-            <div class="sb-value">${bd.oportunidad}/${bd.oppMax}</div>
+            <div class="sb-value" title="Sobre ${bd.oppMax}">${bd.oportunidad}</div>
             <div class="sb-bar"><span class="opp" style="width:${oppPct}%"></span></div>
           </div>
           <div class="sb-item">
             <div class="sb-label">Riesgo</div>
-            <div class="sb-value risk">${bd.riskDeduct > 0 ? '−' + bd.riskDeduct : '0'}</div>
+            <div class="sb-value ${bd.riskDeduct > 0 ? 'risk' : 'risk-clean'}" title="${bd.riskDeduct > 0 ? 'Pérdida por penalty estructural (dilución + categoría)' : 'Sin penalty estructural aplicada (oferta sana + categoría limpia)'}">${bd.riskDeduct > 0 ? '−' + bd.riskDeduct : 'Limpio'}</div>
             <div class="sb-bar"><span class="risk" style="width:${Math.min(100, riskPct)}%"></span></div>
           </div>
         </div>
