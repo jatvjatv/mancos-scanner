@@ -1840,15 +1840,15 @@ function renderTokens() {
           </div>
         </div>
 
-        <div class="score-breakdown" title="Desglose del score: cuánto viene de fundamentos (Calidad), cuánto de descuento/asimetría (Oportunidad), y cuánto resta el riesgo estructural (dilución + categoría).">
+        <div class="score-breakdown" title="Desglose del score en 3 pilares (escala 0-100): Calidad mide fundamentos del negocio, Atractivo mide narrativa+descuento+asimetría, Riesgo resta por penalty estructural.">
           <div class="sb-item">
             <div class="sb-label">Calidad</div>
-            <div class="sb-value" title="Sobre ${bd.calMax}">${bd.calidad}</div>
+            <div class="sb-value" title="${bd.calidad}/${bd.calMax} pts crudos · escala normalizada 0-100">${Math.round((bd.calidad / bd.calMax) * 100)}</div>
             <div class="sb-bar"><span class="cal" style="width:${calPct}%"></span></div>
           </div>
           <div class="sb-item">
-            <div class="sb-label">Oportunidad</div>
-            <div class="sb-value" title="Sobre ${bd.oppMax}">${bd.oportunidad}</div>
+            <div class="sb-label">Atractivo</div>
+            <div class="sb-value" title="${bd.oportunidad}/${bd.oppMax} pts crudos · escala normalizada 0-100 · combina narrativa + descuento vs ATH + demanda externa + asimetría restante">${Math.round((bd.oportunidad / bd.oppMax) * 100)}</div>
             <div class="sb-bar"><span class="opp" style="width:${oppPct}%"></span></div>
           </div>
           <div class="sb-item">
