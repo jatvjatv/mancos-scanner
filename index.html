@@ -140,10 +140,11 @@
   /* Metric cards */
   .metrics {
     display: grid; gap: 16px;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     margin-bottom: 20px;
   }
-  @media (max-width: 900px) { .metrics { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 1100px) { .metrics { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 700px)  { .metrics { grid-template-columns: repeat(2, 1fr); } }
   .metric {
     position: relative;
     padding: 20px;
@@ -989,6 +990,12 @@
       <div class="metric-label">Trending Cripto</div>
       <div class="metric-value" data-metric="trending" style="font-size:16px">—</div>
       <div class="metric-foot">Atención del retail</div>
+    </div>
+    <div class="metric" title="Índice Altcoin Season estilo blockchaincenter.net: cuántos del top 50 (sin stables ni wrapped) superaron a BTC en los últimos 90 días. ≥75% → Altcoin Season, ≤25% → Bitcoin Season.">
+      <div class="metric-icon">◇</div>
+      <div class="metric-label">Altcoin Season</div>
+      <div class="metric-value" data-metric="altseason">—</div>
+      <div class="metric-foot" data-metric="altseasonFoot">Cargando…</div>
     </div>
   </div>
 
@@ -2586,7 +2593,7 @@ async function fetchUniverse() {
 
   // 2. Sin cache → UNA sola llamada al top 250 (no 19 categorías)
   try {
-    const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false&price_change_percentage=24h`;
+    const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false&price_change_percentage=24h,90d`;
     const res = await cgFetch(url, { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const arr = await res.json();
@@ -3228,6 +3235,46 @@ function renderTrending(list) {
   el.textContent = list.slice(0, 3).join(' · ');
 }
 
+// === Altcoin Season Index (estilo blockchaincenter.net) ===
+// Metodología: del top 50 por mcap (excluyendo stables, wrappers, BTC y ETH/
+// staking derivatives), cuántos superaron el rendimiento 90d de BTC.
+// ≥75% → Altcoin Season · ≤25% → Bitcoin Season · medio → neutral.
+// Recibe el array crudo de /coins/markets ya con price_change_percentage_90d_in_currency.
+function computeAltseasonIndex(marketsArr) {
+  const el = document.querySelector('[data-metric="altseason"]');
+  const foot = document.querySelector('[data-metric="altseasonFoot"]');
+  if (!el || !Array.isArray(marketsArr)) return;
+  const btc = marketsArr.find(c => c && c.id === 'bitcoin');
+  const btc90 = btc && btc.price_change_percentage_90d_in_currency;
+  if (btc90 == null) {
+    el.textContent = '—';
+    if (foot) foot.textContent = 'BTC 90d no disponible';
+    return;
+  }
+  // Top 50 alts: excluir BTC y los patrones excluidos del universo (stables, WBTC, stETH, etc.)
+  const alts = marketsArr
+    .filter(c => c && c.symbol && c.id !== 'bitcoin' && !isExcluded(c.symbol.toUpperCase()))
+    .slice(0, 50)
+    .filter(c => c.price_change_percentage_90d_in_currency != null);
+  if (alts.length < 30) {       // muestra muy chica, no es robusta
+    el.textContent = '—';
+    if (foot) foot.textContent = `Muestra insuficiente (${alts.length})`;
+    return;
+  }
+  const winners = alts.filter(c => c.price_change_percentage_90d_in_currency > btc90).length;
+  const pct = Math.round((winners / alts.length) * 100);
+  el.textContent = `${pct}/100`;
+  if (foot) {
+    let label, color;
+    if      (pct >= 75) { label = 'Altcoin Season'; color = 'var(--green)'; }
+    else if (pct >= 50) { label = 'Alts ganando';   color = 'var(--gold)';  }
+    else if (pct >  25) { label = 'BTC ganando';    color = 'var(--gold)';  }
+    else                { label = 'Bitcoin Season'; color = 'var(--red)';   }
+    el.style.color = color;
+    foot.textContent = `${label} · ${winners}/${alts.length} superan a BTC 90d`;
+  }
+}
+
 // === Cache persistente de Reserva (BTC/ETH) ===
 // Key separada del universo porque BTC/ETH están en isExcluded y no entran al
 // snapshot del universo. Sin esto, al perder red las tarjetas caían a los valores
@@ -3396,7 +3443,7 @@ async function fetchLive(manual=false) {
     // UNA sola llamada al top 250 por mcap. Cubre BTC/ETH y prácticamente todos
     // los tokens del universo, sin tener que armar query strings gigantes con ids.
     // Si CoinGecko rate-limita (429), usamos el snapshot del universo cacheado.
-    const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false&price_change_percentage=24h`;
+    const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false&price_change_percentage=24h,90d`;
     let byId = {};
     let usedCache = false;
     try {
@@ -3405,6 +3452,8 @@ async function fetchLive(manual=false) {
       const data = await res.json();
       data.forEach(c => { byId[c.id] = c; });
       console.log(`fetchLive: ${data.length} tokens del top 250 actualizados`);
+      // Calcular Altcoin Season Index con el array crudo (necesita BTC y 90d).
+      computeAltseasonIndex(data);
       // Persistir BTC/ETH al cache de Reserva (vienen acá porque son top mcap,
       // aunque están excluidos del UNIVERSE_CACHE_KEY).
       const reserveById = {};
