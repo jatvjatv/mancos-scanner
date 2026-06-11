@@ -966,35 +966,35 @@
   </p>
 
   <div class="metrics">
-    <div class="metric">
+    <div class="metric" title="Promedio de descuento vs ATH del top 100 por mcap. Métrica gratis 100% on-chain (CoinGecko markets). Proxy del MVRV-Z global.">
       <div class="metric-icon">◐</div>
-      <div class="metric-label">MVRV-Z · Mercado</div>
-      <div class="metric-value">0.64</div>
-      <div class="metric-foot">Zona barata (&lt;1)</div>
+      <div class="metric-label">Descuento Top 100</div>
+      <div class="metric-value" data-metric="avgDiscount">—</div>
+      <div class="metric-foot" data-metric="avgDiscountFoot">Cargando…</div>
     </div>
-    <div class="metric">
+    <div class="metric" title="Cuota del Mcap cripto que tiene Bitcoin. >55% = Bitcoin season, 45-55% = equilibrio, <45% = altseason.">
       <div class="metric-icon">₿</div>
       <div class="metric-label">Dominancia BTC</div>
       <div class="metric-value" data-metric="btcDom">—</div>
       <div class="metric-foot" data-metric="btcDomFoot">Cargando…</div>
     </div>
-    <div class="metric">
-      <div class="metric-icon">📈</div>
-      <div class="metric-label">Buffett Acciones US</div>
-      <div class="metric-value danger">129%</div>
-      <div class="metric-foot">Acciones carísimas</div>
+    <div class="metric" title="Mcap total cripto y su variación 24h. Fuente: CoinGecko /global.">
+      <div class="metric-icon">∑</div>
+      <div class="metric-label">Mcap Total Cripto</div>
+      <div class="metric-value" data-metric="totalMcap">—</div>
+      <div class="metric-foot" data-metric="totalMcapFoot">Cargando…</div>
     </div>
-    <div class="metric">
-      <div class="metric-icon">⇄</div>
-      <div class="metric-label">Flujo de Capital</div>
-      <div class="metric-value" style="font-size:18px">IA · RWA · DePIN</div>
-      <div class="metric-foot">Rotación selectiva</div>
+    <div class="metric" title="Top tokens más buscados ahora mismo en CoinGecko. Atención del retail, no convicción. El scoring castiga el hype sin captura.">
+      <div class="metric-icon">🔥</div>
+      <div class="metric-label">Trending Cripto</div>
+      <div class="metric-value" data-metric="trending" style="font-size:16px">—</div>
+      <div class="metric-foot">Atención del retail</div>
     </div>
   </div>
 
   <div class="thermo">
-    ◇ El termómetro marca <a href="#">mercado cripto barato</a> mientras las acciones cotizan en extremos.
-    Es momento de acumular infraestructura de calidad subvaluada — soltar cuando el MVRV-Z se acerque a 3,7.
+    ◇ Cuando el <a href="#">Descuento Top 100</a> está sobre 65% es zona de acumular infraestructura de calidad subvaluada.
+    Cuando cae bajo 40% el mercado paga caro y conviene soltar — el scoring castiga la entrada cerca del techo.
   </div>
 
   <!-- RANKING -->
@@ -3147,6 +3147,7 @@ async function fetchGlobal() {
 }
 function applyGlobal(d) {
   if (!d) return;
+  // Dominancia BTC
   const btcDom = d.market_cap_percentage?.btc;
   if (btcDom != null) {
     const el = document.querySelector('[data-metric="btcDom"]');
@@ -3156,6 +3157,75 @@ function applyGlobal(d) {
       foot.textContent = btcDom >= 55 ? 'Bitcoin season' : btcDom >= 45 ? 'Equilibrio' : 'Altseason';
     }
   }
+  // Mcap Total cripto + Δ 24h
+  const totalUsd = d.total_market_cap?.usd;
+  const chg24 = d.market_cap_change_percentage_24h_usd;
+  if (totalUsd != null) {
+    const el = document.querySelector('[data-metric="totalMcap"]');
+    if (el) {
+      const t = totalUsd >= 1e12 ? `$${(totalUsd/1e12).toFixed(2)}T`
+              : totalUsd >= 1e9  ? `$${(totalUsd/1e9).toFixed(0)}B`
+              : `$${(totalUsd/1e6).toFixed(0)}M`;
+      el.textContent = t;
+    }
+    const foot = document.querySelector('[data-metric="totalMcapFoot"]');
+    if (foot && chg24 != null) {
+      const sign = chg24 >= 0 ? '+' : '';
+      foot.innerHTML = `<span style="color:${chg24 >= 0 ? 'var(--green)' : 'var(--red)'}">${sign}${chg24.toFixed(2)}% 24h</span>`;
+    }
+  }
+}
+
+// === Descuento promedio del top 100 (proxy del MVRV-Z global) ===
+// Promedio de |ath_change_percentage| de los 100 tokens con mayor mcap del universo.
+// >65% mercado castigado, 40-65% neutral, <40% mercado caro. Se recalcula con cada
+// fetchLive porque depende de los precios y ATH actuales.
+function computeAvgDiscount() {
+  const el = document.querySelector('[data-metric="avgDiscount"]');
+  const foot = document.querySelector('[data-metric="avgDiscountFoot"]');
+  if (!el) return;
+  // Necesitamos tokens con _athRaw y price para calcular % bajo ATH actual.
+  const sample = TOKENS
+    .filter(t => t._athRaw && t.price)
+    .sort((a, b) => (parseAthString(b.mcap) || 0) - (parseAthString(a.mcap) || 0))
+    .slice(0, 100);
+  if (sample.length < 20) {       // muestra muy chica → no comunicamos algo poco robusto
+    el.textContent = '—';
+    if (foot) foot.textContent = `Muestra insuficiente (${sample.length})`;
+    return;
+  }
+  const avg = sample.reduce((s, t) => s + Math.max(0, (1 - t.price/t._athRaw) * 100), 0) / sample.length;
+  el.textContent = `${avg.toFixed(0)}%`;
+  if (foot) {
+    let label;
+    if      (avg >= 65) { label = 'Mercado castigado'; el.style.color = 'var(--green)'; }
+    else if (avg >= 40) { label = 'Mercado neutral';   el.style.color = 'var(--gold)';  }
+    else                { label = 'Mercado caro';      el.style.color = 'var(--red)';   }
+    foot.textContent = label + ` (${sample.length} tokens)`;
+  }
+}
+
+// === Trending CoinGecko (top 7 más buscados) ===
+// Endpoint público sin key. Caché 5 min — esto cambia despacio.
+let trendingCache = { ts: 0, list: [] };
+async function fetchTrending() {
+  if (trendingCache.list.length && Date.now() - trendingCache.ts < 5 * 60 * 1000) {
+    renderTrending(trendingCache.list);
+    return;
+  }
+  try {
+    const res = await cgFetch('https://api.coingecko.com/api/v3/search/trending', { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    const list = (json.coins || []).slice(0, 5).map(c => (c.item?.symbol || '').toUpperCase()).filter(Boolean);
+    trendingCache = { ts: Date.now(), list };
+    renderTrending(list);
+  } catch (e) { console.warn('Trending fetch falló:', e); }
+}
+function renderTrending(list) {
+  const el = document.querySelector('[data-metric="trending"]');
+  if (!el || !list.length) return;
+  el.textContent = list.slice(0, 3).join(' · ');
 }
 
 // === Cache persistente de Reserva (BTC/ETH) ===
@@ -3305,6 +3375,7 @@ async function loadUniverseBackground() {
   renderPortfolio();
   renderTokens();   // refresca ranking con la data del universo
   renderTraps();    // detecta trampas con el nuevo universo
+  computeAvgDiscount();   // calcula descuento promedio del top 100
 }
 
 // === Fetch a CoinGecko (precios + criterios) ===
@@ -3439,6 +3510,7 @@ async function fetchLive(manual=false) {
     renderTokens();
     renderPortfolio();          // re-rank picks con los nuevos scores
     renderTraps();               // re-detecta trampas con la data nueva
+    computeAvgDiscount();        // refresca tarjeta de "Descuento Top 100"
   } catch (err) {
     console.error('CoinGecko fetch fallido:', err);
     state.syncError = true;
@@ -3456,10 +3528,12 @@ renderPortfolio();
 updateStatus();
 updateUniverseStat();
 fetchReservesNow();                       // BTC/ETH al instante (1 llamada chica)
-fetchGlobal();                            // dominancia BTC (cache 5 min)
+fetchGlobal();                            // dominancia + mcap total (cache 5 min)
+fetchTrending();                          // top 7 trending CoinGecko (cache 5 min)
 fetchLive();                              // primera carga: top 250 + universo si toca
 setInterval(fetchLive,    60_000);        // refresco general cada 60 s (incluye BTC/ETH)
-setInterval(fetchGlobal, 300_000);        // dominancia cada 5 min
+setInterval(fetchGlobal, 300_000);        // global cada 5 min
+setInterval(fetchTrending,300_000);       // trending cada 5 min
 setInterval(updateStatus, 30_000);        // reloj al día
 </script>
 </body>
