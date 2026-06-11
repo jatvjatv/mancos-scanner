@@ -979,11 +979,11 @@
       <div class="metric-value" data-metric="btcDom">—</div>
       <div class="metric-foot" data-metric="btcDomFoot">Cargando…</div>
     </div>
-    <div class="metric" title="Mcap total cripto y su variación 24h. Fuente: CoinGecko /global.">
-      <div class="metric-icon">∑</div>
-      <div class="metric-label">Mcap Total Cripto</div>
-      <div class="metric-value" data-metric="totalMcap">—</div>
-      <div class="metric-foot" data-metric="totalMcapFoot">Cargando…</div>
+    <div class="metric" data-metric-card="phase" title="Fase del ciclo del mercado cripto. Combina Fear & Greed (alternative.me, diario) + Descuento Top 100 + Altcoin Season 1y. No dice qué hacer — dice dónde estás. Acumulación = zona de comprar calidad subvaluada. Distribución = zona de tomar profit. Recuperación/Expansión = mantener, no perseguir.">
+      <div class="metric-icon">◐</div>
+      <div class="metric-label">Fase del Ciclo</div>
+      <div class="metric-value" data-metric="phase" style="font-size:18px">—</div>
+      <div class="metric-foot" data-metric="phaseFoot">Cargando F&amp;G…</div>
     </div>
     <div class="metric" title="Top tokens más buscados ahora mismo en CoinGecko. Atención del retail, no convicción. El scoring castiga el hype sin captura.">
       <div class="metric-icon">🔥</div>
@@ -3202,6 +3202,8 @@ function computeAvgDiscount() {
     return;
   }
   const avg = sample.reduce((s, t) => s + Math.max(0, (1 - t.price/t._athRaw) * 100), 0) / sample.length;
+  cycleState.descuento = avg;             // alimenta la tarjeta Fase del Ciclo
+  if (typeof renderCyclePhase === 'function') renderCyclePhase();
   el.textContent = `${avg.toFixed(0)}%`;
   if (foot) {
     let label;
@@ -3267,6 +3269,8 @@ function computeAltseasonIndex(marketsArr) {
   }
   const winners = alts.filter(c => c.price_change_percentage_1y_in_currency > btc1y).length;
   const pct = Math.round((winners / alts.length) * 100);
+  cycleState.altseason = pct;             // alimenta la tarjeta Fase del Ciclo
+  if (typeof renderCyclePhase === 'function') renderCyclePhase();
   el.textContent = `${pct}/100`;
   if (foot) {
     let label, color;
@@ -3276,6 +3280,85 @@ function computeAltseasonIndex(marketsArr) {
     else                { label = 'Bitcoin Season';  color = 'var(--red)';   }
     el.style.color = color;
     foot.textContent = `${label} · ${winners}/${alts.length} superan a BTC 1y`;
+  }
+}
+
+// === Fear & Greed Index (alternative.me, free, CORS-friendly) ===
+// Estado compartido del ciclo: los 3 inputs viven acá y cada uno actualiza el suyo.
+// renderCyclePhase() los lee y pinta la tarjeta. Esto evita race conditions entre
+// fetchLive (60s) y fetchFearGreed (1h) — cada uno escribe su slot y dispara render.
+const cycleState = { fng: null, fngClass: null, descuento: null, altseason: null };
+
+async function fetchFearGreed() {
+  try {
+    const res = await fetch('https://api.alternative.me/fng/?limit=1', { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    const d = json && json.data && json.data[0];
+    if (d) {
+      cycleState.fng = parseInt(d.value, 10);
+      cycleState.fngClass = d.value_classification;
+      renderCyclePhase();
+    }
+  } catch (e) {
+    console.warn('Fear & Greed fetch falló:', e);
+  }
+}
+
+// === Cálculo de Fase del Ciclo ===
+// Fuentes (Buffett-style):
+//   - Fear & Greed (0-100): sentimiento del retail. Bajo = miedo (oportunidad).
+//   - Descuento Top 100 (%): proxy de "qué tan barato está el mercado". Alto = barato.
+//   - Altcoin Season 1y (0-100): rotación BTC ↔ alts. Modulador, no determinante.
+//
+// Filosofía: F&G manda como eje principal (es la métrica más establecida y
+// directamente comparable a fases clásicas de Wyckoff). Descuento y Altseason
+// dan nuance — refinan el sub-estado de cada fase.
+//
+// No decimos qué hacer, decimos dónde estás. Si el usuario está en Acumulación
+// y tiene tokens TOP/SÓLIDO en la lista, sabe que es zona de comprar lo de
+// calidad subvaluada. Si está en Distribución, sabe que es zona de tomar profit.
+function renderCyclePhase() {
+  const el = document.querySelector('[data-metric="phase"]');
+  const foot = document.querySelector('[data-metric="phaseFoot"]');
+  if (!el) return;
+  const { fng, descuento, altseason } = cycleState;
+  if (fng == null) {
+    el.textContent = '—';
+    if (foot) foot.textContent = 'F&G no disponible';
+    return;
+  }
+
+  let phase, hint, color;
+  if (fng <= 25) {
+    phase = 'ACUMULACIÓN';
+    color = 'var(--green)';
+    hint = (descuento != null && descuento >= 60) ? 'profunda' : 'temprana';
+  } else if (fng <= 45) {
+    phase = 'RECUPERACIÓN';
+    color = 'var(--gold)';
+    hint = (altseason != null && altseason >= 50) ? 'con rotación a alts' : 'BTC liderando';
+  } else if (fng <= 60) {
+    phase = 'MERCADO NEUTRAL';
+    color = 'var(--gold)';
+    hint = 'sin sesgo claro';
+  } else if (fng <= 74) {
+    phase = 'EXPANSIÓN';
+    color = 'var(--gold)';
+    hint = (altseason != null && altseason >= 60) ? 'altseason activa' : 'BTC liderando';
+  } else {
+    phase = 'DISTRIBUCIÓN';
+    color = 'var(--red)';
+    hint = (descuento != null && descuento <= 35) ? 'avanzada' : 'temprana';
+  }
+
+  el.textContent = phase;
+  el.style.color = color;
+  if (foot) {
+    const parts = [`F&G ${fng}`];
+    if (descuento != null) parts.push(`Desc ${Math.round(descuento)}%`);
+    if (altseason != null) parts.push(`Alts ${altseason}/100`);
+    foot.innerHTML = `<span style="color:${color}">${hint}</span> · ${parts.join(' · ')}`;
   }
 }
 
@@ -3581,13 +3664,15 @@ renderPortfolio();
 updateStatus();
 updateUniverseStat();
 fetchReservesNow();                       // BTC/ETH al instante (1 llamada chica)
-fetchGlobal();                            // dominancia + mcap total (cache 5 min)
+fetchGlobal();                            // dominancia BTC (cache 5 min)
 fetchTrending();                          // top 7 trending CoinGecko (cache 5 min)
+fetchFearGreed();                         // F&G index (alimenta Fase del Ciclo)
 fetchLive();                              // primera carga: top 250 + universo si toca
-setInterval(fetchLive,    60_000);        // refresco general cada 60 s (incluye BTC/ETH)
-setInterval(fetchGlobal, 300_000);        // global cada 5 min
+setInterval(fetchLive,     60_000);       // refresco general cada 60 s (incluye BTC/ETH)
+setInterval(fetchGlobal,  300_000);       // global cada 5 min
 setInterval(fetchTrending,300_000);       // trending cada 5 min
-setInterval(updateStatus, 30_000);        // reloj al día
+setInterval(fetchFearGreed,3600_000);     // F&G cada 1 h (la fuente actualiza diario)
+setInterval(updateStatus,  30_000);       // reloj al día
 </script>
 </body>
 </html>
