@@ -410,6 +410,7 @@
   }
   .price { font-size: 24px; font-weight: 700; color: var(--text); }
   .change { font-size: 13px; font-weight: 600; }
+  .chg-label { font-size: 10px; font-weight: 500; opacity: 0.6; letter-spacing: 0.04em; margin-left: 1px; }
   .change.up { color: var(--green); }
   .change.down { color: var(--red); }
   .meta {
@@ -1063,7 +1064,7 @@
       <div class="reserve-card" data-reserve="BTC">
         <div class="reserve-head"><h3>BTC</h3><span class="reserve-tag">◯ RESERVA</span></div>
         <div class="sub">Bitcoin · Reserva de valor · El ancla</div>
-        <div class="price-row"><span class="price" data-field="price">$67,505</span><span class="change down" data-field="chg">-5.2%</span></div>
+        <div class="price-row"><span class="price" data-field="price">$67,505</span><span class="change down" data-field="chg" title="Cambio de precio en las últimas 24h">-5.2% <span class="chg-label">24h</span></span></div>
         <div class="meta">
           <span><strong>Mcap</strong> <span data-field="mcap">$1.6T</span></span>
           <span><strong>ATH</strong> <span data-field="ath">$126,000</span></span>
@@ -1078,7 +1079,7 @@
       <div class="reserve-card" data-reserve="ETH">
         <div class="reserve-head"><h3>ETH</h3><span class="reserve-tag">◯ RESERVA</span></div>
         <div class="sub">Ethereum · Ancla L1 · Capa de RWA</div>
-        <div class="price-row"><span class="price" data-field="price">$1,922</span><span class="change down" data-field="chg">-2.4%</span></div>
+        <div class="price-row"><span class="price" data-field="price">$1,922</span><span class="change down" data-field="chg" title="Cambio de precio en las últimas 24h">-2.4% <span class="chg-label">24h</span></span></div>
         <div class="meta">
           <span><strong>Mcap</strong> <span data-field="mcap">$520B</span></span>
           <span><strong>ATH</strong> <span data-field="ath">$4,878</span></span>
@@ -1826,7 +1827,7 @@ function renderTokens() {
 
         <div class="price-row">
           <span class="price">${fmtUsd(t.price)}</span>
-          ${t.chg!==0 ? `<span class="change ${t.chg>0?'up':'down'}">${t.chg>0?'+':''}${t.chg}%</span>` : ''}
+          ${t.chg!==0 ? `<span class="change ${t.chg>0?'up':'down'}" title="Cambio de precio en las últimas 24h">${t.chg>0?'+':''}${t.chg}% <span class="chg-label">24h</span></span>` : ''}
         </div>
         <div class="meta">
           <span><strong>Mcap</strong> ${t.mcap}</span>
@@ -3397,8 +3398,9 @@ function applyReserveData(byId, sourceLabel) {
         const chg = +(+c.price_change_percentage_24h).toFixed(1);
         const chgEl = card.querySelector('[data-field="chg"]');
         if (chgEl) {
-          chgEl.textContent = (chg>0?'+':'') + chg + '%';
+          chgEl.innerHTML = (chg>0?'+':'') + chg + '% <span class="chg-label">24h</span>';
           chgEl.className = 'change ' + (chg>=0?'up':'down');
+          chgEl.title = 'Cambio de precio en las últimas 24h';
         }
       }
       if (c.market_cap) set('mcap', fmtMcap(c.market_cap));
@@ -3490,8 +3492,9 @@ async function loadUniverseBackground() {
           const chg = +(+c.price_change_percentage_24h).toFixed(1);
           const chgEl = card.querySelector('[data-field="chg"]');
           if (chgEl) {
-            chgEl.textContent = (chg>0?'+':'') + chg + '%';
+            chgEl.innerHTML = (chg>0?'+':'') + chg + '% <span class="chg-label">24h</span>';
             chgEl.className = 'change ' + (chg>=0?'up':'down');
+            chgEl.title = 'Cambio de precio en las últimas 24h';
           }
         }
         if (c.market_cap) set('mcap', fmtMcap(c.market_cap));
@@ -3575,6 +3578,31 @@ async function fetchLive(manual=false) {
       }
     }
 
+    // Segundo fetch: recoger tokens del universo que cayeron fuera del top 250
+    // por mcap (HNT, IO, etc.). Sin esto, sus tarjetas quedan con el price
+    // hardcoded aunque el badge diga "EN VIVO".
+    if (!usedCache) {
+      const missing = [];
+      TOKENS.forEach(t => {
+        const id = t._cgId || CG_IDS[t.tk];
+        if (id && !byId[id]) missing.push(id);
+      });
+      if (missing.length) {
+        try {
+          const idsParam = encodeURIComponent(missing.join(','));
+          const url2 = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${idsParam}&per_page=${missing.length}&page=1&sparkline=false&price_change_percentage=24h,1y`;
+          const res2 = await cgFetch(url2, { cache: 'no-store' });
+          if (res2.ok) {
+            const data2 = await res2.json();
+            data2.forEach(c => { byId[c.id] = c; });
+            console.log(`fetchLive: ${data2.length}/${missing.length} tokens fuera del top 250 recuperados via ids=`);
+          }
+        } catch (e) {
+          console.warn('Fetch de tokens fuera del top 250 falló:', e);
+        }
+      }
+    }
+
     // DefiLlama en paralelo (con fallback silencioso)
     let llamaBySlug = {};
     try { llamaBySlug = await fetchLlamaFees(); } catch (e) { console.warn('Llama no disponible:', e); }
@@ -3627,8 +3655,9 @@ async function fetchLive(manual=false) {
           const chg = +(+c.price_change_percentage_24h).toFixed(1);
           const chgEl = card.querySelector('[data-field="chg"]');
           if (chgEl) {
-            chgEl.textContent = (chg>0?'+':'') + chg + '%';
+            chgEl.innerHTML = (chg>0?'+':'') + chg + '% <span class="chg-label">24h</span>';
             chgEl.className = 'change ' + (chg>=0?'up':'down');
+            chgEl.title = 'Cambio de precio en las últimas 24h';
           }
         }
         if (c.market_cap) set('mcap', fmtMcap(c.market_cap));
