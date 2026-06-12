@@ -411,6 +411,33 @@
   .price { font-size: 24px; font-weight: 700; color: var(--text); }
   .change { font-size: 13px; font-weight: 600; }
   .chg-label { font-size: 10px; font-weight: 500; opacity: 0.6; letter-spacing: 0.04em; margin-left: 1px; }
+  #updateBanner {
+    position: fixed; bottom: 20px; right: 20px; z-index: 9999;
+    display: flex; align-items: center; gap: 10px;
+    background: linear-gradient(135deg, rgba(16,185,129,0.16), rgba(59,130,246,0.16));
+    border: 1px solid rgba(16,185,129,0.45);
+    border-radius: 12px; padding: 10px 14px;
+    color: var(--text); font-size: 13px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    max-width: 420px;
+    animation: upSlideIn 0.4s ease-out;
+  }
+  #updateBanner .up-dot { color: var(--green); font-size: 10px; }
+  #updateBanner .up-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #updateBanner .up-text em { opacity: 0.7; font-style: normal; }
+  #updateBanner .up-reload {
+    background: var(--green); color: #001; border: none;
+    padding: 6px 12px; border-radius: 8px; font-weight: 600;
+    font-size: 12px; cursor: pointer;
+  }
+  #updateBanner .up-reload:hover { filter: brightness(1.1); }
+  #updateBanner .up-close {
+    background: transparent; border: none; color: var(--text);
+    opacity: 0.5; cursor: pointer; font-size: 14px; padding: 0 4px;
+  }
+  #updateBanner .up-close:hover { opacity: 1; }
+  @keyframes upSlideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
   .change.up { color: var(--green); }
   .change.down { color: var(--red); }
   .meta {
@@ -3704,6 +3731,56 @@ setInterval(fetchGlobal,  300_000);       // global cada 5 min
 setInterval(fetchTrending,300_000);       // trending cada 5 min
 setInterval(fetchFearGreed,3600_000);     // F&G cada 1 h (la fuente actualiza diario)
 setInterval(updateStatus,  30_000);       // reloj al día
+
+// === Check de nueva versión contra GitHub ===
+// Consulta el último commit de main al cargar y cada 1 h. Si difiere del SHA
+// visto la última vez en este navegador, muestra un banner para recargar.
+// Si la página se sirve desde GitHub Pages o raw.githubusercontent, recargar
+// trae el HTML nuevo. Si se abre como file:// local, el banner igual avisa.
+const VERSION_REPO = 'jatvjatv/mancos-scanner';
+const VERSION_KEY  = 'mancos:lastSeenSha';
+
+async function checkForUpdate() {
+  try {
+    const res = await fetch(`https://api.github.com/repos/${VERSION_REPO}/commits/main`, { cache: 'no-store' });
+    if (!res.ok) return;
+    const data = await res.json();
+    const latestSha = data.sha;
+    if (!latestSha) return;
+    const stored = localStorage.getItem(VERSION_KEY);
+    if (!stored) {
+      // Primera visita: guardar y salir sin avisar.
+      localStorage.setItem(VERSION_KEY, latestSha);
+      return;
+    }
+    if (stored !== latestSha) showUpdateBanner(latestSha, data.commit?.message?.split('\n')[0] || '');
+  } catch (e) {
+    // Silencioso: la página sigue funcionando sin el check.
+  }
+}
+
+function showUpdateBanner(sha, msg) {
+  if (document.getElementById('updateBanner')) return;
+  const banner = document.createElement('div');
+  banner.id = 'updateBanner';
+  banner.innerHTML = `
+    <span class="up-dot">●</span>
+    <span class="up-text">Nueva versión disponible${msg ? ` · <em>${msg.replace(/</g,'&lt;')}</em>` : ''}</span>
+    <button class="up-reload">Recargar</button>
+    <button class="up-close" title="Descartar">✕</button>`;
+  document.body.appendChild(banner);
+  banner.querySelector('.up-reload').onclick = () => {
+    localStorage.setItem(VERSION_KEY, sha);
+    location.reload();
+  };
+  banner.querySelector('.up-close').onclick = () => {
+    localStorage.setItem(VERSION_KEY, sha);
+    banner.remove();
+  };
+}
+
+checkForUpdate();
+setInterval(checkForUpdate, 3600_000);    // re-chequea cada 1 h
 </script>
 </body>
 </html>
